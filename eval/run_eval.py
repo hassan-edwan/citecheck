@@ -56,6 +56,40 @@ TAU_GRID = [round(x, 2) for x in np.arange(0.05, 1.0, 0.05)]
 RETRIEVAL_DEPTH = 20
 
 
+def tau_tuning_claims(claims, n, seed=0):
+    """The train claims tau is tuned on: a seeded sample of n (all of them when there are <= n).
+
+    eval.finetune_nli calls this too and leaves these claims OUT of training, so a fine-tuned
+    model's tau is tuned on claims it has never seen.  Keep the two in sync by changing only this.
+    """
+    claims = sorted(claims, key=lambda c: c.id)
+    if len(claims) <= n:
+        return claims
+    pick = sorted(np.random.default_rng(seed).choice(len(claims), n, replace=False))
+    return [claims[i] for i in pick]
+
+
+def check_tuning_claims_held_out(model, tune_claims, allow_leak=False):
+    """Refuse to tune tau on train claims that a local fine-tuned checkpoint was trained on.
+
+    A Hugging Face id (no local train_log.json) never saw SciFact, so it passes.  Returns how many tuning
+    claims the model was trained on (non-zero only with allow_leak).
+    """
+    log_path = Path(model) / "train_log.json"
+    if not log_path.exists():
+        return 0
+    log = json.loads(log_path.read_text(encoding="utf-8"))
+    held_out = set(log.get("heldout_claim_ids") or [])
+    seen = [c.id for c in tune_claims if c.id not in held_out]
+    if seen and not allow_leak:
+        sys.exit(
+            f"{len(seen)} of the {len(tune_claims)} tau-tuning claims were used to fine-tune {model}, so tau would be "
+            "tuned on training data. Retrain with eval.finetune_nli (it holds these claims out by default, with the "
+            "same --tune-n/--seed), or pass --allow-leak to record the leak."
+        )
+    return len(seen)
+
+
 # --------------------------------------------------------------------------- #
 # Collecting model outputs (the expensive part; cached)
 # --------------------------------------------------------------------------- #
@@ -113,6 +147,17 @@ def collect(claims, corpus_by_id, retriever, verifier, scorer, k, m, mode="e2e",
 def _cache_path(spec: dict) -> Path:
     key = hashlib.sha1(json.dumps(spec, sort_keys=True).encode()).hexdigest()[:20]
     return Path("eval/cache") / f"collect_{key}.json"
+
+
+def _local_model_fingerprint(model):
+    """sha256 prefix of a local checkpoint's weights (None for a Hugging Face id)."""
+    if not model or not Path(model).is_dir():
+        return None
+    weights = sorted(Path(model).glob("*.safetensors")) or sorted(Path(model).glob("*.bin"))
+    h = hashlib.sha256()
+    for w in weights:
+        h.update(sha256_file(w).encode())
+    return h.hexdigest()[:16] if weights else None
 
 
 def collect_cached(spec, use_cache, **kw):
@@ -304,6 +349,9 @@ def run(args) -> dict:
         "retriever": retriever.name, "embed": args.embed_model, "verifier": verifier.name, "k": args.k,
         "m": args.sentences, "data": data_hash, "limit": args.limit,
     }
+    fingerprint = _local_model_fingerprint(spec[4:] if spec.lower().startswith("nli:") else None)
+    if fingerprint:  # retraining into the same folder must not reuse the old checkpoint's cached outputs
+        base_spec["model_sha256_prefix"] = fingerprint
 
     def get(split_name, claim_list, mode):
         s = dict(base_spec, split=split_name, mode=mode, n=len(claim_list), first=claim_list[0].id if claim_list else None)
@@ -323,19 +371,20 @@ def run(args) -> dict:
         if args.tune_split == args.split and not args.allow_leak:
             sys.exit("Refusing to tune tau on the split you report on. Use --tune-split train (default) or --allow-leak.")
         tune_path = data_dir / f"claims_{args.tune_split}.jsonl"
-        tune_claims = sorted(load_claims(tune_path), key=lambda c: c.id)
-        rng = np.random.default_rng(args.seed)
-        if len(tune_claims) > args.tune_n:
-            pick = sorted(rng.choice(len(tune_claims), args.tune_n, replace=False))
-            tune_claims = [tune_claims[i] for i in pick]
+        tune_claims = tau_tuning_claims(load_claims(tune_path), args.tune_n, args.seed)
         if args.limit:
             tune_claims = tune_claims[: args.limit]
+        n_trained_on = 0
+        model_path = spec[4:] if spec.lower().startswith("nli:") else None
+        if args.tune_split == "train" and model_path:
+            n_trained_on = check_tuning_claims_held_out(model_path, tune_claims, args.allow_leak)
         tune_out = get(f"tune-{args.tune_split}", tune_claims, "e2e")["outputs"]
         best = tune_tau(tune_out, args.margin)
         tau = best["tau"]
         tuning = {
             "method": "grid_max_macro_f1", "split": args.tune_split, "n_claims": len(tune_claims),
-            "tuned_macro_f1": best["macro_f1"], "leak": args.tune_split == args.split,
+            "tuned_macro_f1": best["macro_f1"], "leak": args.tune_split == args.split or n_trained_on > 0,
+            "n_tuning_claims_seen_in_finetuning": n_trained_on,
         }
 
     # ---- end-to-end ------------------------------------------------------------------------

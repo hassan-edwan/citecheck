@@ -107,14 +107,53 @@ def test_real_transformer_end_to_end_and_finetune(fixture_dir, tmp_path):
 
     tiny = make_tiny_nli(tmp_path / "base")
     out = tmp_path / "ft"
-    finetune_nli.main(["--base", tiny, "--data-dir", str(fixture_dir), "--out", str(out), "--epochs", "1",
-                       "--max-steps", "3", "--batch-size", "4", "--device", "cpu", "--max-length", "64"])
+    finetune_nli.main(["--base", tiny, "--data-dir", str(fixture_dir), "--out", str(out), "--epochs", "2",
+                       "--max-steps", "3", "--batch-size", "4", "--device", "cpu", "--max-length", "64",
+                       "--tune-n", "3", "--no-match-inference"])
     assert (out / "train_log.json").exists() and (out / "config.json").exists()
     log = json.loads((out / "train_log.json").read_text())
-    assert "claims_dev" not in json.dumps(log["args"]) and log["n_pairs"] == len(pairs)
-    # the fine-tuned checkpoint plugs straight into the evaluation harness
-    r = run_eval.main(base_args(fixture_dir, tmp_path / "res", "ft", verifier="nli", extra=["--model", str(out), "--device", "cpu"]))
+    heldout = {c.id for c in run_eval.tau_tuning_claims(load_claims(fixture_dir / "claims_train.jsonl"), 3, 0)}
+    assert "claims_dev" not in json.dumps(log["args"]) and set(log["heldout_claim_ids"]) == heldout
+    trained = [c for c in load_claims(fixture_dir / "claims_train.jsonl") if c.id not in heldout]
+    assert log["n_pairs"] == len(finetune_nli.build_training_pairs(
+        trained, {d.doc_id: d for d in corpus}, BM25Retriever(corpus), LexicalSentenceScorer.from_docs(corpus)))
+    assert log["val_log"] and log["val_log"][0]["val_pair_macro_f1"] is not None
+    # the fine-tuned checkpoint plugs straight into the evaluation harness, tuning tau on the held-out claims only
+    r = run_eval.main(base_args(fixture_dir, tmp_path / "res", "ft", verifier="nli",
+                                extra=["--model", str(out), "--device", "cpu", "--tune-n", "3"]))
     assert r["config"]["verifier"].startswith("nli:") and r["timing"]["n_params"] > 0
+    assert r["tau_tuning"]["leak"] is False and r["tau_tuning"]["n_tuning_claims_seen_in_finetuning"] == 0
+    # tuning tau on claims the checkpoint was trained on is refused, or recorded as a leak with --allow-leak
+    with pytest.raises(SystemExit):
+        run_eval.main(base_args(fixture_dir, tmp_path / "res", "ft2", verifier="nli", extra=["--model", str(out), "--device", "cpu"]))
+    r = run_eval.main(base_args(fixture_dir, tmp_path / "res", "ft3", verifier="nli",
+                                extra=["--model", str(out), "--device", "cpu", "--allow-leak"]))
+    assert r["tau_tuning"]["leak"] is True and r["tau_tuning"]["n_tuning_claims_seen_in_finetuning"] > 0
+
+
+def test_match_inference_pairs_use_selector_output(fixture_dir):
+    from eval import finetune_nli
+    from src.data_io import load_corpus
+    from src.evidence import LexicalSentenceScorer
+
+    corpus = load_corpus(fixture_dir / "corpus.jsonl")
+    by_id, scorer = {d.doc_id: d for d in corpus}, LexicalSentenceScorer.from_docs(corpus)
+    claims = load_claims(fixture_dir / "claims_train.jsonl")
+    base = finetune_nli.build_training_pairs(claims, by_id, None, scorer, m=2)
+    more = finetune_nli.build_training_pairs(claims, by_id, None, scorer, m=2, match_inference=True, gold_doc_neutral=1)
+    assert set(base) <= set(more) and len(more) > len(base)
+    for premise, claim, cls in set(more) - set(base):
+        assert cls in finetune_nli.CLASSES and premise and claim
+
+
+def test_tau_tuning_claims_matches_session5_sample(fixture_dir):
+    """The refactored helper must pick the same claims the inline Session 5 code did (results stay comparable)."""
+    import numpy as np
+
+    claims = sorted(load_claims(fixture_dir / "claims_train.jsonl"), key=lambda c: c.id)
+    pick = sorted(np.random.default_rng(0).choice(len(claims), 3, replace=False))
+    assert [c.id for c in run_eval.tau_tuning_claims(claims, 3, 0)] == [claims[i].id for i in pick]
+    assert len(run_eval.tau_tuning_claims(claims, 100, 0)) == len(claims)
 
 
 def test_versions_come_from_package_metadata():
@@ -140,3 +179,16 @@ def test_error_report_names_the_driver_paper():
     assert "rank 2" in label and "Off-topic paper" in label and "NOT a gold paper" in label
     assert "a gold evidence paper" in _driver_label({"driver_doc": "1", "gold_docs": ["1"]}, {"doc_id": "1", "rank": 1}, corpus)
     assert _driver_label({"driver_doc": None, "gold_docs": []}, {"doc_id": "1", "rank": 1}, corpus).startswith("none (abstained)")
+
+
+def test_cache_key_changes_when_a_local_checkpoint_is_retrained(tmp_path):
+    pytest.importorskip("torch")
+    pytest.importorskip("transformers")
+    from tests.tiny_model import make_tiny_nli
+
+    path = tmp_path / "ft"
+    make_tiny_nli(path, seed=0)
+    a = run_eval._local_model_fingerprint(str(path))
+    make_tiny_nli(path, seed=1)  # "retrain" into the same folder
+    assert a and run_eval._local_model_fingerprint(str(path)) != a
+    assert run_eval._local_model_fingerprint("MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli") is None

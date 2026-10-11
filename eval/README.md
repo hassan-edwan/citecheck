@@ -18,7 +18,7 @@ python -m eval.plots --run zero_shot_nli
 
 # 3. improvements (each is one row in the ablation table)
 python -m eval.run_eval --name hybrid_nli --retriever hybrid --verifier nli --compare-with eval/results/zero_shot_nli
-python -m eval.finetune_nli --out models/citecheck-nli-ft            # stretch; GPU/Colab recommended
+python -m eval.finetune_nli --out models/citecheck-nli-ft            # GPU recommended: notebooks/finetune_colab.ipynb
 python -m eval.run_eval --name finetuned_nli --retriever bm25 --verifier nli --model models/citecheck-nli-ft \
                         --oracle --compare-with eval/results/zero_shot_nli
 ```
@@ -42,6 +42,9 @@ corpus once (cached in `data/cache/`).
 ## Rules that keep us honest
 
 * **tau (the abstain threshold) is tuned on `train`, reported on `dev`.** Tuning on dev is refused unless `--allow-leak`.
+* **A fine-tuned model never sees the claims tau is tuned on.** `eval.finetune_nli` holds out the same 200 train claims
+  `run_eval` tunes tau on (`run_eval.tau_tuning_claims`, same `--tune-n`/`--seed`) and lists them in the checkpoint's
+  `train_log.json`; `run_eval --model <local dir>` refuses to tune on any other train claim unless `--allow-leak`.
 * `claims_test.jsonl` has no public labels. We never use it.
 * Runs on `tests/fixtures/**` are flagged `synthetic_fixture` and can never be promoted or quoted.
 * `--promote` writes `eval/results/deployed_config.json`; the app loads exactly that configuration and shows its dev score.
