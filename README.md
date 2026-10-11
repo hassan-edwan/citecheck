@@ -61,6 +61,7 @@ The presenter card with what should appear is `demo/DEMO_SCRIPT.md`; the check r
 | Engineering | Sakshaat | Architecture, code review, repo health, deployment |
 | Data and Evaluation | Sahil | Data and licensing, the evaluation harness, metrics, error analysis |
 | Users and Research | Ritika | Recruiting users, running sessions, capturing raw evidence |
+| Modeling | Hassan | NLP models, fine-tuning, embeddings, prompt engineering, and inference optimization |
 
 ## Repo structure
 
