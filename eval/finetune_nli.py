@@ -165,7 +165,9 @@ def main(argv=None):
     # bf16 only on Ampere+ (A100/L4); a T4 reports emulated bf16 support but runs it slowly, so it gets fp16
     amp_dtype = torch.bfloat16 if use_amp and torch.cuda.get_device_capability()[0] >= 8 else torch.float16
     tok = AutoTokenizer.from_pretrained(a.base)
-    model = AutoModelForSequenceClassification.from_pretrained(a.base).to(dev)
+    # fp32 master weights: transformers >= 5 keeps a checkpoint's saved dtype (the MoritzLaurer models are fp16),
+    # and fp16 weights cannot be trained (GradScaler: "Attempting to unscale FP16 gradients"); autocast does the fp16 math
+    model = AutoModelForSequenceClassification.from_pretrained(a.base).float().to(dev)
     if a.gradient_checkpointing:
         model.gradient_checkpointing_enable()
     idx = resolve_label_indices(model.config.id2label)
@@ -201,8 +203,7 @@ def main(argv=None):
     sched = get_linear_schedule_with_warmup(opt, int(a.warmup * total), total)
     scaler = torch.amp.GradScaler("cuda", enabled=use_amp and amp_dtype == torch.float16)
 
-    out = Path(a.out)
-    out.mkdir(parents=True, exist_ok=True)
+    out = Path(a.out)  # created by the first save, so a crashed run leaves no empty checkpoint folder behind
     log, val_log, best, step, t0 = [], [], None, 0, time.time()
     model.train()
     for epoch in range(a.epochs):

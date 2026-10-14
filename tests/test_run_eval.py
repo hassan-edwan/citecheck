@@ -192,3 +192,21 @@ def test_cache_key_changes_when_a_local_checkpoint_is_retrained(tmp_path):
     make_tiny_nli(path, seed=1)  # "retrain" into the same folder
     assert a and run_eval._local_model_fingerprint(str(path)) != a
     assert run_eval._local_model_fingerprint("MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli") is None
+
+
+def test_finetune_trains_fp32_weights_from_an_fp16_checkpoint(fixture_dir, tmp_path):
+    """Colab crash: the MoritzLaurer checkpoints are stored in fp16 and transformers 5 loads them as fp16."""
+    torch = pytest.importorskip("torch")
+    pytest.importorskip("transformers")
+    from transformers import AutoModelForSequenceClassification
+
+    from eval import finetune_nli
+    from tests.tiny_model import make_tiny_nli
+
+    base = make_tiny_nli(tmp_path / "base")
+    AutoModelForSequenceClassification.from_pretrained(base).half().save_pretrained(base)
+    out = tmp_path / "ft"
+    finetune_nli.main(["--base", base, "--data-dir", str(fixture_dir), "--out", str(out), "--epochs", "1",
+                       "--max-steps", "2", "--batch-size", "4", "--device", "cpu", "--max-length", "64", "--tune-n", "3"])
+    model = AutoModelForSequenceClassification.from_pretrained(out)
+    assert all(p.dtype == torch.float32 for p in model.parameters())
