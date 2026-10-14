@@ -25,10 +25,12 @@ MAX_CLAIM_CHARS = 1500
 
 class CiteCheckPipeline:
     def __init__(self, verifier, retriever=None, scorer=None, k: int = 3, sentences_per_paper: int = 3,
-                 tau: float = 0.5, margin: float = 0.0, meta: Optional[dict] = None, warnings: Optional[list] = None):
+                 tau: float = 0.5, margin: float = 0.0, meta: Optional[dict] = None, warnings: Optional[list] = None,
+                 evidence_unit: str = "window"):
         self.verifier, self.retriever = verifier, retriever
         self.scorer = scorer or LexicalSentenceScorer()
         self.k, self.m, self.tau, self.margin = k, sentences_per_paper, tau, margin
+        self.evidence_unit = evidence_unit
         self.meta = meta or {}
         self.warnings = warnings or []
 
@@ -52,7 +54,7 @@ class CiteCheckPipeline:
             hits = self.retriever.search(claim, self.k)
         else:
             hits = [Hit(d, 0.0, i + 1) for i, d in enumerate(docs)]
-        scored = score_claim_docs([(claim, hits)], self.verifier, self.scorer, m=self.m)[0]
+        scored = score_claim_docs([(claim, hits)], self.verifier, self.scorer, m=self.m, unit=self.evidence_unit)[0]
         dec = decide([s.probs for s in scored], tau=self.tau, margin=self.margin)
 
         strength = lambda i: max(scored[i].probs.support, scored[i].probs.contradict)  # noqa: E731
@@ -137,6 +139,7 @@ def build_pipeline(cfg: Optional[Config] = None, allow_fallback: bool = True) ->
     dep = cfg.deployed or {}
     meta = {
         "retriever": getattr(retriever, "name", None), "verifier": verifier.name, "k": cfg.k, "tau": cfg.tau,
+        "evidence_unit": cfg.evidence_unit,
         "validated": bool(cfg.validated and not fell_back),
         "demo_only": verifier.name in ("lexical", "majority"),
         "deployed_run": dep.get("run_name"), "dev_macro_f1": dep.get("dev_macro_f1"),
@@ -144,4 +147,5 @@ def build_pipeline(cfg: Optional[Config] = None, allow_fallback: bool = True) ->
         "overrides": list(cfg.overrides),
     }
     scorer = LexicalSentenceScorer.from_docs(corpus) if corpus else LexicalSentenceScorer()
-    return CiteCheckPipeline(verifier, retriever, scorer, cfg.k, cfg.sentences_per_paper, cfg.tau, cfg.margin, meta, warnings)
+    return CiteCheckPipeline(verifier, retriever, scorer, cfg.k, cfg.sentences_per_paper, cfg.tau, cfg.margin, meta, warnings,
+                             evidence_unit=cfg.evidence_unit)

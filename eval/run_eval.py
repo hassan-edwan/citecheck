@@ -47,7 +47,7 @@ from src.data_io import (
     sha256_file,
     split_has_labels,
 )
-from src.evidence import LexicalSentenceScorer, score_claim_docs
+from src.evidence import EVIDENCE_UNITS, LexicalSentenceScorer, score_claim_docs
 from src.nli import DEFAULT_NLI_MODEL, build_verifier
 from src.retrieval import build_retriever
 from src.schema import Hit, LABELS, Probs
@@ -94,7 +94,7 @@ def check_tuning_claims_held_out(model, tune_claims, allow_leak=False):
 # --------------------------------------------------------------------------- #
 # Collecting model outputs (the expensive part; cached)
 # --------------------------------------------------------------------------- #
-def collect(claims, corpus_by_id, retriever, verifier, scorer, k, m, mode="e2e", depth=RETRIEVAL_DEPTH):
+def collect(claims, corpus_by_id, retriever, verifier, scorer, k, m, mode="e2e", depth=RETRIEVAL_DEPTH, unit="window"):
     """Run retrieval + verification once and keep everything needed to score at any tau."""
     items, rankings = [], []
     t_ret = 0.0
@@ -116,7 +116,7 @@ def collect(claims, corpus_by_id, retriever, verifier, scorer, k, m, mode="e2e",
         gold_sent = [{d: c.rationale_sentence_idxs(d) for d in c.gold_docs} for c in claims]
 
     t0 = time.perf_counter()
-    scored = score_claim_docs(items, verifier, scorer, m=m, gold_sentences=gold_sent)
+    scored = score_claim_docs(items, verifier, scorer, m=m, gold_sentences=gold_sent, unit=unit)
     t_ver = time.perf_counter() - t0
 
     outputs = []
@@ -308,7 +308,9 @@ def build_parser():
     p.add_argument("--verifier", default="nli", help="majority | lexical | nli | nli:<model>")
     p.add_argument("--model", default=None, help=f"NLI checkpoint (default {DEFAULT_NLI_MODEL}); HF id or local folder")
     p.add_argument("--k", type=int, default=3, help="papers judged per claim")
-    p.add_argument("--sentences", type=int, default=3, help="sentences per paper fed to the verifier")
+    p.add_argument("--sentences", type=int, default=3, help="sentences per paper fed to the verifier (window unit)")
+    p.add_argument("--evidence-unit", default="window", choices=EVIDENCE_UNITS,
+                   help="what the verifier reads per paper: top sentences joined | whole abstract | each sentence")
     p.add_argument("--tau", type=float, default=None, help="fixed abstain threshold (skips tuning)")
     p.add_argument("--margin", type=float, default=0.0)
     p.add_argument("--tune-split", default="train", choices=["train", "dev", "none"])
@@ -356,6 +358,8 @@ def run(args) -> dict:
         "retriever": retriever.name, "embed": args.embed_model, "verifier": verifier.name, "k": args.k,
         "m": args.sentences, "data": data_hash, "limit": args.limit,
     }
+    if args.evidence_unit != "window":  # keeps Session 5 cache keys valid
+        base_spec["unit"] = args.evidence_unit
     fingerprint = _local_model_fingerprint(spec[4:] if spec.lower().startswith("nli:") else None)
     if fingerprint:  # retraining into the same folder must not reuse the old checkpoint's cached outputs
         base_spec["model_sha256_prefix"] = fingerprint
@@ -364,7 +368,7 @@ def run(args) -> dict:
         s = dict(base_spec, split=split_name, mode=mode, n=len(claim_list), first=claim_list[0].id if claim_list else None)
         return collect_cached(
             s, not args.no_cache, claims=claim_list, corpus_by_id=corpus_by_id, retriever=retriever,
-            verifier=verifier, scorer=scorer, k=args.k, m=args.sentences, mode=mode,
+            verifier=verifier, scorer=scorer, k=args.k, m=args.sentences, mode=mode, unit=args.evidence_unit,
         )
 
     # ---- tau: tuned on TRAIN, never on the split we report ---------------------------------
@@ -407,7 +411,7 @@ def run(args) -> dict:
         "partial": bool(args.limit),
         "config": {
             "retriever": retriever.name, "embed_model": args.embed_model, "verifier": verifier.name, "k": args.k,
-            "sentences_per_paper": args.sentences, "tau": tau, "margin": args.margin,
+            "sentences_per_paper": args.sentences, "evidence_unit": args.evidence_unit, "tau": tau, "margin": args.margin,
         },
         "tau_tuning": tuning,
         "data": {"dir": str(data_dir), "sha256_prefix": data_hash, "n_corpus": len(corpus),
@@ -421,6 +425,11 @@ def run(args) -> dict:
         "timing": e2e["timing"],
         "provenance": {"git_commit": _git_commit(), "versions": _versions(), "argv": sys.argv[1:], "seed": args.seed},
     }
+    if model_log := _local_train_log(spec):
+        trained_unit = json.loads(model_log.read_text(encoding="utf-8")).get("args", {}).get("unit", "window")
+        results["config"]["trained_on_unit"] = trained_unit
+        if trained_unit != args.evidence_unit:
+            print(f"[warn] {spec[4:]} was fine-tuned on '{trained_unit}' evidence but is evaluated on '{args.evidence_unit}'")
     if hasattr(verifier, "n_params") and spec.lower().startswith("nli"):
         results["timing"]["n_params"] = verifier.n_params
         results["timing"]["device"] = getattr(verifier, "device", None)
@@ -486,7 +495,8 @@ def summary_md(r: dict) -> str:
         + ("  **PARTIAL run (--limit).**" if r["partial"] else ""),
         "",
         f"- retriever `{r['config']['retriever']}`, verifier `{r['config']['verifier']}`, k={r['config']['k']}, "
-        f"sentences/paper={r['config']['sentences_per_paper']}, tau={r['config']['tau']}",
+        f"sentences/paper={r['config']['sentences_per_paper']}, evidence unit={r['config'].get('evidence_unit', 'window')}, "
+        f"tau={r['config']['tau']}",
         f"- tau tuning: {r['tau_tuning']}",
         "",
         "## Claim-level (3-class: SUPPORT / CONTRADICT / NEI)",
@@ -554,6 +564,11 @@ def write_outputs(out_dir: Path, results: dict, preds: list, outputs: list):
     print(f"[saved] {out_dir}")
 
 
+def unit_tag(config: dict) -> str:
+    unit = config.get("evidence_unit", "window")
+    return "" if unit == "window" else f" [{unit}]"
+
+
 def write_latest(out_root: Path):
     rows = []
     for rj in sorted(out_root.glob("*/results.json")):
@@ -570,7 +585,7 @@ def write_latest(out_root: Path):
         cl, rt, c = r["claim_level"], r["retrieval"], r["config"]
         flags = ", ".join(x for x, on in (("SYNTHETIC", r["synthetic_fixture"]), ("partial", r["partial"])) if on) or "-"
         lines.append(
-            f"| {r['name']} | {r['split']} | {c['retriever']} | {c['verifier']} | {c['tau']} | {cl['macro_f1']:.3f} {_fmt_ci(cl['macro_f1_ci95'])} "
+            f"| {r['name']} | {r['split']} | {c['retriever']} | {c['verifier']}{unit_tag(c)} | {c['tau']} | {cl['macro_f1']:.3f} {_fmt_ci(cl['macro_f1_ci95'])} "
             f"| {cl['false_support_rate']:.3f} | {rt['recall@5']:.3f} | {flags} |"
         )
     (out_root / "LATEST.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -586,6 +601,7 @@ def promote(out_root: Path, results: dict, args):
         "verifier": args.verifier if not args.model else f"nli:{args.model}",
         "k": args.k,
         "sentences_per_paper": args.sentences,
+        "evidence_unit": args.evidence_unit,
         "tau": results["config"]["tau"],
         "margin": args.margin,
         "dev_macro_f1": results["claim_level"]["macro_f1"],

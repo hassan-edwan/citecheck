@@ -23,6 +23,11 @@ python -m eval.run_eval --name finetuned_nli --retriever bm25 --verifier nli --m
                         --oracle --compare-with eval/results/zero_shot_nli
 ```
 
+**Evidence units** (`--evidence-unit`, and `--unit` when fine-tuning): what the verifier reads per paper.
+`window` (default, Session 5) = the top `--sentences` sentences joined; `abstract` = the whole abstract, no selection;
+`sentence` = each sentence on its own, the paper takes its most decisive sentence and those sentences are the evidence
+shown. Promoting a run records its unit in `deployed_config.json`, so the app reads papers the same way.
+
 Smoke test with 20 claims first (`--limit 20`; the run is flagged *partial* and cannot be promoted).
 The first NLI run downloads the model from Hugging Face (~700 MB) and the first dense/hybrid run embeds the
 corpus once (cached in `data/cache/`).

@@ -15,6 +15,12 @@ What it trains on (train split only; dev/test are never read):
   * (optional, --gold-doc-neutral N) the N non-rationale sentence windows of a gold paper that look most
                 like the claim -> neutral
 
+Evidence units (--unit; evaluate with the same run_eval --evidence-unit):
+  * window   : the pairs above; the verifier reads the top-m selected sentences joined (Session 5 design)
+  * abstract : the verifier reads the whole abstract; no sentence selection (build_abstract_pairs)
+  * sentence : the verifier reads one sentence at a time and the paper takes its most decisive sentence
+               (build_sentence_pairs; aggregation in src/evidence.aggregate_sentence_probs)
+
 Held-out claims: the train claims eval.run_eval tunes tau on (run_eval.tau_tuning_claims, same --tune-n and
 --seed) are LEFT OUT of training.  They are used for per-epoch validation and the best epoch is kept, and
 run_eval refuses to tune tau on any claim the checkpoint was trained on.
@@ -90,6 +96,85 @@ def build_training_pairs(claims, corpus_by_id, retriever, scorer, m=3, neg_per_c
     return pairs
 
 
+def _hard_negative_docs(claim, gold, retriever, n):
+    if retriever is None or n <= 0:
+        return []
+    docs = [h.doc for h in retriever.search(claim.claim, n + len(gold) + 3) if h.doc.doc_id not in gold and h.doc.sentences]
+    return docs[:n]
+
+
+def build_abstract_pairs(claims, corpus_by_id, retriever, scorer, neg_per_claim=1, **_):
+    """unit=abstract: the WHOLE abstract is the premise, exactly what the verifier reads at inference.
+
+    Gold paper -> its label; cited papers of NEI claims and retrieved non-gold papers -> neutral.  The gold
+    rationale alone is kept as an extra positive so the model still learns which sentences carry the verdict.
+    """
+    pairs = []
+    for c in claims:
+        gold = set(c.gold_docs)
+        for doc_id, lab in c.gold_doc_labels.items():
+            doc = corpus_by_id.get(doc_id)
+            if lab == MIXED or doc is None or not doc.sentences:
+                continue
+            cls = "support" if lab == SUPPORT else "contradict"
+            pairs.append((" ".join(doc.sentences), c.claim, cls))
+            for rset in c.rationale_sets(doc_id):
+                premise = " ".join(doc.sentences[i] for i in rset if i < len(doc.sentences))
+                if premise:
+                    pairs.append((premise, c.claim, cls))
+        if c.gold_label == NEI:
+            for doc_id in c.cited_doc_ids:
+                doc = corpus_by_id.get(doc_id)
+                if doc is not None and doc.sentences:
+                    pairs.append((" ".join(doc.sentences), c.claim, "neutral"))
+        for doc in _hard_negative_docs(c, gold, retriever, neg_per_claim):
+            pairs.append((" ".join(doc.sentences), c.claim, "neutral"))
+    return pairs
+
+
+def build_sentence_pairs(claims, corpus_by_id, retriever, scorer, neg_per_claim=1, neutral_per_doc=4, **_):
+    """unit=sentence: ONE sentence is the premise, as at inference.
+
+    Rationale sentence -> the paper's label (a multi-sentence rationale is also kept joined, and its single
+    sentences are skipped: alone, each may only partly support the claim).  Neutral: the non-rationale
+    sentences of gold papers and the sentences of cited-NEI / retrieved non-gold papers, taking the
+    neutral_per_doc that look MOST like the claim (the hard cases the aggregator must not fire on).
+    """
+    pairs = []
+
+    def hardest(claim, doc, exclude=()):
+        rest = [i for i in range(len(doc.sentences)) if i not in exclude]
+        scores = scorer.score(claim, [doc.sentences[i] for i in rest])
+        return [i for _, i in sorted(zip(scores, rest), key=lambda t: (-t[0], t[1]))][:neutral_per_doc]
+
+    for c in claims:
+        gold = set(c.gold_docs)
+        for doc_id, lab in c.gold_doc_labels.items():
+            doc = corpus_by_id.get(doc_id)
+            if doc is None or not doc.sentences:
+                continue
+            rationale = set(c.rationale_sentence_idxs(doc_id))
+            if lab != MIXED:
+                cls = "support" if lab == SUPPORT else "contradict"
+                for rset in c.rationale_sets(doc_id):
+                    rset = [i for i in rset if i < len(doc.sentences)]
+                    if rset:
+                        pairs.append((build_premise(doc.sentences, rset), c.claim, cls))
+            for i in hardest(c.claim, doc, exclude=rationale):
+                pairs.append((doc.sentences[i], c.claim, "neutral"))
+        neutral_docs = [corpus_by_id.get(d) for d in c.cited_doc_ids] if c.gold_label == NEI else []
+        neutral_docs += _hard_negative_docs(c, gold, retriever, neg_per_claim)
+        for doc in neutral_docs:
+            if doc is not None and doc.sentences:
+                for i in hardest(c.claim, doc):
+                    pairs.append((doc.sentences[i], c.claim, "neutral"))
+    return pairs
+
+
+PAIR_BUILDERS = {"window": build_training_pairs, "abstract": build_abstract_pairs, "sentence": build_sentence_pairs}
+MAX_LENGTH = {"window": 320, "abstract": 512, "sentence": 160}  # abstracts: median ~190 words, p99 ~450
+
+
 def class_counts(pairs):
     return {k: sum(1 for p in pairs if p[2] == k) for k in CLASSES}
 
@@ -114,12 +199,15 @@ def main(argv=None):
     ap.add_argument("--lr", type=float, default=1e-5)
     ap.add_argument("--batch-size", type=int, default=8)
     ap.add_argument("--grad-accum", type=int, default=1, help="optimizer step every N batches (effective batch = N x batch-size)")
-    ap.add_argument("--max-length", type=int, default=320)
+    ap.add_argument("--unit", default="window", choices=list(PAIR_BUILDERS),
+                    help="evidence unit to train for; evaluate with run_eval --evidence-unit <same>")
+    ap.add_argument("--max-length", type=int, default=None, help="default: 320 window, 512 abstract, 160 sentence")
     ap.add_argument("--neg-per-claim", type=int, default=1)
     ap.add_argument("--sentences", type=int, default=3)
     ap.add_argument("--match-inference", action=argparse.BooleanOptionalAction, default=True,
                     help="also train on the sentences our selector picks from gold papers (default on)")
-    ap.add_argument("--gold-doc-neutral", type=int, default=0, help="non-rationale windows per gold paper -> neutral")
+    ap.add_argument("--gold-doc-neutral", type=int, default=0, help="window unit: non-rationale windows per gold paper -> neutral")
+    ap.add_argument("--neutral-per-doc", type=int, default=4, help="sentence unit: neutral sentences taken per paper")
     ap.add_argument("--tune-n", type=int, default=200, help="hold out the claims run_eval tunes tau on (same as its --tune-n)")
     ap.add_argument("--max-steps", type=int, default=None, help="stop early (smoke test)")
     ap.add_argument("--class-weights", default="auto", choices=["auto", "none"])
@@ -129,6 +217,7 @@ def main(argv=None):
     ap.add_argument("--seed", type=int, default=0, help="training seed AND the held-out sample (same as run_eval --seed)")
     ap.add_argument("--device", default=None)
     a = ap.parse_args(argv)
+    a.max_length = a.max_length or MAX_LENGTH[a.unit]
 
     import numpy as np
     import torch
@@ -153,11 +242,14 @@ def main(argv=None):
 
     retriever, scorer = BM25Retriever(corpus), LexicalSentenceScorer.from_docs(corpus)
     build = dict(m=a.sentences, neg_per_claim=a.neg_per_claim, match_inference=a.match_inference,
-                 gold_doc_neutral=a.gold_doc_neutral)
-    pairs = build_training_pairs(claims, by_id, retriever, scorer, **build)
-    val_pairs = build_training_pairs(heldout, by_id, retriever, scorer, **build)
+                 gold_doc_neutral=a.gold_doc_neutral, neutral_per_doc=a.neutral_per_doc)
+    builder = PAIR_BUILDERS[a.unit]
+    if a.unit == "window":
+        build.pop("neutral_per_doc")
+    pairs = builder(claims, by_id, retriever, scorer, **build)
+    val_pairs = builder(heldout, by_id, retriever, scorer, **build)
     counts = class_counts(pairs)
-    print(f"{len(claims)} training claims -> {len(pairs)} pairs {counts}; "
+    print(f"[unit={a.unit}, max_length={a.max_length}] {len(claims)} training claims -> {len(pairs)} pairs {counts}; "
           f"{len(heldout)} held-out claims -> {len(val_pairs)} validation pairs")
 
     dev = a.device or ("cuda" if torch.cuda.is_available() else "cpu")

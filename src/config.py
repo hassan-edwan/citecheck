@@ -17,7 +17,7 @@ from typing import Optional
 
 DEPLOYED_PATH = Path("eval/results/deployed_config.json")
 
-_MODEL_FIELDS = ("retriever", "embed_model", "verifier", "k", "sentences_per_paper", "tau", "margin")
+_MODEL_FIELDS = ("retriever", "embed_model", "verifier", "k", "sentences_per_paper", "evidence_unit", "tau", "margin")
 
 
 @dataclass
@@ -27,6 +27,7 @@ class Config:
     verifier: str = "nli"
     k: int = 3
     sentences_per_paper: int = 3
+    evidence_unit: str = "window"  # window | abstract | sentence (src/evidence.py)
     tau: float = 0.5
     margin: float = 0.0
     data_dir: str = "data/scifact"
@@ -63,6 +64,7 @@ def load_config(deployed_path: Path = DEPLOYED_PATH) -> Config:
         "CITECHECK_VERIFIER": ("verifier", str),
         "CITECHECK_EMBED_MODEL": ("embed_model", str),
         "CITECHECK_K": ("k", int),
+        "CITECHECK_EVIDENCE_UNIT": ("evidence_unit", str),
         "CITECHECK_TAU": ("tau", float),
         "CITECHECK_MARGIN": ("margin", float),
     }
