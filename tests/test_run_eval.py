@@ -123,6 +123,7 @@ def test_real_transformer_end_to_end_and_finetune(fixture_dir, tmp_path):
                                 extra=["--model", str(out), "--device", "cpu", "--tune-n", "3"]))
     assert r["config"]["verifier"].startswith("nli:") and r["timing"]["n_params"] > 0
     assert r["tau_tuning"]["leak"] is False and r["tau_tuning"]["n_tuning_claims_seen_in_finetuning"] == 0
+    assert json.loads((tmp_path / "res" / "ft" / "train_log.json").read_text()) == log  # travels with the results
     # tuning tau on claims the checkpoint was trained on is refused, or recorded as a leak with --allow-leak
     with pytest.raises(SystemExit):
         run_eval.main(base_args(fixture_dir, tmp_path / "res", "ft2", verifier="nli", extra=["--model", str(out), "--device", "cpu"]))

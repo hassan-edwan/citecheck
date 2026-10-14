@@ -27,6 +27,7 @@ import argparse
 import hashlib
 import json
 import platform
+import shutil
 import subprocess
 import sys
 import time
@@ -147,6 +148,12 @@ def collect(claims, corpus_by_id, retriever, verifier, scorer, k, m, mode="e2e",
 def _cache_path(spec: dict) -> Path:
     key = hashlib.sha1(json.dumps(spec, sort_keys=True).encode()).hexdigest()[:20]
     return Path("eval/cache") / f"collect_{key}.json"
+
+
+def _local_train_log(spec):
+    """train_log.json of a local fine-tuned checkpoint named by an nli:<path> spec, if there is one."""
+    path = Path(spec[4:]) / "train_log.json" if spec.lower().startswith("nli:") else None
+    return path if path and path.is_file() else None
 
 
 def _local_model_fingerprint(model):
@@ -455,6 +462,8 @@ def run(args) -> dict:
     results["paired_comparisons"] = comps
 
     write_outputs(Path(args.out) / args.name, results, preds, outputs)
+    if model_log := _local_train_log(spec):  # keep the fine-tuning record (held-out ids, validation curve) with the run
+        shutil.copyfile(model_log, Path(args.out) / args.name / "train_log.json")
     write_latest(Path(args.out))
     if args.promote:
         promote(Path(args.out), results, args)
