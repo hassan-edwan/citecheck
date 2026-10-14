@@ -28,6 +28,15 @@ python -m eval.run_eval --name finetuned_nli --retriever bm25 --verifier nli --m
 `sentence` = each sentence on its own, the paper takes its most decisive sentence and those sentences are the evidence
 shown. Promoting a run records its unit in `deployed_config.json`, so the app reads papers the same way.
 
+**Stage 2, hybrid reasoner** (`--reasoner <local LLM> --reasoner-mode hybrid|checks|llm --escalate not-confident|all`):
+claims stage 1 is not confident about are re-judged by `src/reasoning.py` (a small local LLM extracts sentences,
+quantities, p-values and CIs as JSON; Python grounds every number in the text and checks significance and quantities;
+a failed check can make a verdict CONTRADICT, a check never creates a SUPPORT). LLM outputs are cached in
+`eval/cache/`, so the three modes of one model share one generation pass. Not promotable yet (the app has no stage 2).
+
+**Cited-paper setting**: with `--oracle`, `results.json["cited_paper"]` and `predictions_cited_paper.jsonl` hold the
+metric for the product's own question (the user supplies the paper), with a CI and paired comparisons.
+
 Smoke test with 20 claims first (`--limit 20`; the run is flagged *partial* and cannot be promoted).
 The first NLI run downloads the model from Hugging Face (~700 MB) and the first dense/hybrid run embeds the
 corpus once (cached in `data/cache/`).

@@ -50,7 +50,7 @@ from src.data_io import (
 from src.evidence import EVIDENCE_UNITS, LexicalSentenceScorer, score_claim_docs
 from src.nli import DEFAULT_NLI_MODEL, build_verifier
 from src.retrieval import build_retriever
-from src.schema import Hit, LABELS, Probs
+from src.schema import Hit, LABELS, NEI, Probs
 from src.verdict import decide, doc_level_labels
 
 TAU_GRID = [round(x, 2) for x in np.arange(0.05, 1.0, 0.05)]
@@ -204,6 +204,65 @@ def predict(outputs, tau, margin=0.0):
     return preds
 
 
+ESCALATE = ("not-confident", "all")
+CONFIDENT = 0.98  # stage-1 verdicts at least this strong are kept (set before any stage-2 result was seen)
+
+
+def needs_reasoning(pred, output, policy):
+    """Stage-1 claims passed to the stage-2 reasoner.  not-confident: stage 1 abstained, or its strongest paper
+    is below CONFIDENT (the 0.9-1.0 band is the only one where finetuned_nli is right more than ~2/3 of the time)."""
+    if not output["docs"]:
+        return False
+    if policy == "all":
+        return True
+    strength = max(max(d["probs"]["support"], d["probs"]["contradict"]) for d in output["docs"])
+    return pred["abstained"] or strength < CONFIDENT
+
+
+def apply_reasoner(preds, outputs, corpus_by_id, reasoner, policy, cache_tag, use_cache=True):
+    """Re-judge the escalated claims with the stage-2 reasoner (one LLM call per judged paper; raw outputs cached,
+    so the hybrid / checks / llm modes of one model share a single generation pass)."""
+    from collections import Counter
+
+    from src.reasoning import PROMPT_VERSION, combine_docs
+
+    path = Path("eval/cache") / ("reason_" + hashlib.sha1(
+        f"{reasoner.llm.model_name}|{PROMPT_VERSION}".encode()).hexdigest()[:16] + ".json")
+    cache = json.loads(path.read_text(encoding="utf-8")) if use_cache and path.exists() else {}
+    by_id = {o["id"]: o for o in outputs}
+    todo = [p for p in preds if needs_reasoning(p, by_id[p["id"]], policy)]
+    jobs = [(p["id"], d["doc_id"]) for p in todo for d in by_id[p["id"]]["docs"] if d["doc_id"] in corpus_by_id]
+    key = lambda cid, did: f"{cache_tag}:{cid}:{did}"  # noqa: E731
+    missing = [(c, d) for c, d in jobs if key(c, d) not in cache]
+    t0 = time.perf_counter()
+    if missing:
+        raw = reasoner.extract([(by_id[c]["claim"], corpus_by_id[d].sentences) for c, d in missing])
+        cache.update({key(c, d): r for (c, d), r in zip(missing, raw)})
+        if use_cache:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(cache), encoding="utf-8")
+    seconds = time.perf_counter() - t0
+    sources, changed = Counter(), 0
+    for p in todo:
+        o = by_id[p["id"]]
+        docs = [d for d in o["docs"] if d["doc_id"] in corpus_by_id]
+        js = [reasoner.judge_raw(o["claim"], corpus_by_id[d["doc_id"]].sentences, cache[key(p["id"], d["doc_id"])]) for d in docs]
+        res = combine_docs(js)
+        p["stage1_pred"] = p["pred"]
+        p["stage2"] = [{"doc_id": d["doc_id"], **{k: v for k, v in j.items() if k != "raw"}} for d, j in zip(docs, js)]
+        for j in js:
+            sources[j["source"]] += 1
+        if res["label"] is None:
+            continue
+        changed += res["label"] != p["pred"]
+        p["pred"], p["abstained"] = res["label"], res["label"] == NEI
+        p["driver_doc"] = docs[res["doc_index"]]["doc_id"] if res["doc_index"] is not None else None
+        p["note"] = "stage2:" + (js[res["doc_index"]]["source"] if res["doc_index"] is not None else res.get("note", "no verdict"))
+    return {"policy": policy, "n_escalated": len(todo), "n_changed": changed, "n_llm_calls": len(missing),
+            "n_paper_judgements": len(jobs), "generation_seconds": seconds,
+            "ms_per_llm_call": 1000 * seconds / len(missing) if missing else None, "sources": dict(sources)}
+
+
 def claim_level(preds, n_boot=1000, seed=0):
     rows = [p for p in preds if p["gold"] in LABELS]  # drops MIXED
     yt, yp = [p["gold"] for p in rows], [p["pred"] for p in rows]
@@ -324,6 +383,11 @@ def build_parser():
     p.add_argument("--out", default="eval/results")
     p.add_argument("--no-cache", action="store_true")
     p.add_argument("--promote", action="store_true", help="write eval/results/deployed_config.json for the app")
+    p.add_argument("--reasoner", default=None, help="stage 2: local instruction LLM (HF id or folder) for the hybrid reasoner")
+    p.add_argument("--reasoner-mode", default="hybrid", choices=["hybrid", "checks", "llm"])
+    p.add_argument("--escalate", default="not-confident", choices=ESCALATE, help="which claims stage 2 re-judges")
+    p.add_argument("--reasoner-batch-size", type=int, default=8)
+    p.add_argument("--reasoner-max-new-tokens", type=int, default=384)
     p.add_argument("--device", default=None)
     p.add_argument("--batch-size", type=int, default=16)
     return p
@@ -402,6 +466,16 @@ def run(args) -> dict:
     e2e = get(args.split, claims, "e2e")
     outputs = e2e["outputs"]
     preds = predict(outputs, tau, args.margin)
+    reasoner, stage2 = None, {}
+    if args.reasoner:
+        if args.promote:
+            sys.exit("--promote with --reasoner: the app does not run the stage-2 reasoner yet.")
+        from src.reasoning import HybridReasoner, LocalLLM
+
+        reasoner = HybridReasoner(LocalLLM(args.reasoner, device=args.device, batch_size=args.reasoner_batch_size,
+                                           max_new_tokens=args.reasoner_max_new_tokens), mode=args.reasoner_mode)
+        stage2["end_to_end"] = apply_reasoner(preds, outputs, corpus_by_id, reasoner, args.escalate,
+                                              args.split, not args.no_cache)
 
     results = {
         "name": args.name,
@@ -423,6 +497,10 @@ def run(args) -> dict:
         "abstract_level": abstract_level(outputs, tau),
         "tau_sweep_analysis_only": tau_sweep(outputs, args.margin),
         "timing": e2e["timing"],
+        **({"stage2": {"reasoner": reasoner.name, "mode": args.reasoner_mode, "escalate": args.escalate,
+                       "confident_threshold": CONFIDENT, "runs": stage2,
+                       "note": "claim_level, paired comparisons and cited_paper include stage 2; abstract_level, "
+                               "tau_sweep and oracle_rationale are stage 1 only"}} if reasoner else {}),
         "provenance": {"git_commit": _git_commit(), "versions": _versions(), "argv": sys.argv[1:], "seed": args.seed},
     }
     if model_log := _local_train_log(spec):
@@ -439,7 +517,14 @@ def run(args) -> dict:
         att = {"end_to_end": results["claim_level"]["macro_f1"]}
         for mode in ("oracle_doc", "oracle_rationale"):
             o = get(args.split, claims, mode)["outputs"]
-            att[mode] = claim_level(predict(o, tau, args.margin), args.n_boot, args.seed)["macro_f1"]
+            mode_preds = predict(o, tau, args.margin)
+            if reasoner is not None and mode == "oracle_doc":
+                stage2["oracle_doc"] = apply_reasoner(mode_preds, o, corpus_by_id, reasoner, args.escalate,
+                                                      args.split, not args.no_cache)
+            if mode == "oracle_doc":  # the product setting: the user gives the paper they cite
+                cited_preds = mode_preds
+                results["cited_paper"] = claim_level(mode_preds, args.n_boot, args.seed)
+            att[mode] = claim_level(mode_preds, args.n_boot, args.seed)["macro_f1"]
         att["loss_from_retrieval"] = att["oracle_doc"] - att["end_to_end"]
         att["loss_from_sentence_selection"] = att["oracle_rationale"] - att["oracle_doc"]
         att["remaining_gap_is_verifier"] = 1.0 - att["oracle_rationale"]
@@ -469,8 +554,26 @@ def run(args) -> dict:
         cmp_.update({"vs": Path(other_dir).name, "n": len(ids)})
         comps.append(cmp_)
     results["paired_comparisons"] = comps
+    if args.oracle:  # same comparison in the cited-paper setting, against runs that saved it
+        cited = {p["id"]: p for p in cited_preds if p["gold"] in LABELS}
+        results["cited_paper"]["paired_comparisons"] = []
+        for other_dir in args.compare_with:
+            pf = Path(other_dir) / "predictions_cited_paper.jsonl"
+            if not pf.exists():
+                continue
+            theirs = {r["id"]: r for r in map(json.loads, pf.read_text(encoding="utf-8").splitlines()) if r["gold"] in LABELS}
+            ids = sorted(set(cited) & set(theirs))
+            if ids:
+                c = M.paired_bootstrap_diff([cited[i]["gold"] for i in ids], [cited[i]["pred"] for i in ids],
+                                            [theirs[i]["pred"] for i in ids], n_boot=args.n_boot, seed=args.seed)
+                c.update({"vs": Path(other_dir).name, "n": len(ids)})
+                results["cited_paper"]["paired_comparisons"].append(c)
 
     write_outputs(Path(args.out) / args.name, results, preds, outputs)
+    if args.oracle:
+        with open(Path(args.out) / args.name / "predictions_cited_paper.jsonl", "w", encoding="utf-8") as f:
+            for p in cited_preds:
+                f.write(json.dumps(p) + "\n")
     if model_log := _local_train_log(spec):  # keep the fine-tuning record (held-out ids, validation curve) with the run
         shutil.copyfile(model_log, Path(args.out) / args.name / "train_log.json")
     write_latest(Path(args.out))
@@ -539,6 +642,19 @@ def summary_md(r: dict) -> str:
             f"\n**vs `{c['vs']}`**: macro-F1 difference {c['diff']:+.3f}, 95% CI [{c['ci95'][0]:+.3f}, {c['ci95'][1]:+.3f}], "
             f"P(this run better) = {c['p_a_better']:.2f}  (n={c['n']})"
         )
+    if "cited_paper" in r:
+        cp = r["cited_paper"]
+        lines += ["", "## Cited-paper setting (the product: the user gives the paper; = oracle_doc)",
+                  f"- macro-F1 {cp['macro_f1']:.3f}  95% CI {_fmt_ci(cp['macro_f1_ci95'])}  false-SUPPORT {cp['false_support_rate']:.3f}"]
+        for c in cp.get("paired_comparisons", []):
+            lines.append(f"- vs `{c['vs']}`: {c['diff']:+.3f}, 95% CI [{c['ci95'][0]:+.3f}, {c['ci95'][1]:+.3f}] (n={c['n']})")
+    if "stage2" in r:
+        s2 = r["stage2"]
+        lines += ["", f"## Stage 2: `{s2['reasoner']}` (escalate: {s2['escalate']})"]
+        for where, st in s2["runs"].items():
+            lines.append(f"- {where}: {st['n_escalated']} claims escalated, {st['n_changed']} verdicts changed, "
+                         f"{st['n_llm_calls']} LLM calls; sources {st['sources']}")
+        lines.append(f"- {s2['note']}")
     t = r["timing"]
     lines += [
         "",
@@ -583,7 +699,8 @@ def write_latest(out_root: Path):
     ]
     for r in rows:
         cl, rt, c = r["claim_level"], r["retrieval"], r["config"]
-        flags = ", ".join(x for x, on in (("SYNTHETIC", r["synthetic_fixture"]), ("partial", r["partial"])) if on) or "-"
+        flags = ", ".join(x for x, on in (("SYNTHETIC", r["synthetic_fixture"]), ("partial", r["partial"]),
+                                          (f"stage2:{r.get('stage2', {}).get('mode')}", "stage2" in r)) if on) or "-"
         lines.append(
             f"| {r['name']} | {r['split']} | {c['retriever']} | {c['verifier']}{unit_tag(c)} | {c['tau']} | {cl['macro_f1']:.3f} {_fmt_ci(cl['macro_f1_ci95'])} "
             f"| {cl['false_support_rate']:.3f} | {rt['recall@5']:.3f} | {flags} |"

@@ -16,7 +16,8 @@ def base_args(fixture_dir, out, name, verifier="lexical", extra=()):
 def test_full_run_and_files(fixture_dir, tmp_path):
     res = run_eval.main(base_args(fixture_dir, tmp_path, "lexical", extra=["--oracle"]))
     d = tmp_path / "lexical"
-    assert {p.name for p in d.iterdir()} == {"results.json", "predictions.jsonl", "summary.md"}
+    assert {p.name for p in d.iterdir()} == {"results.json", "predictions.jsonl", "summary.md", "predictions_cited_paper.jsonl"}
+    assert res["cited_paper"]["macro_f1"] == res["error_attribution"]["oracle_doc"]
     assert res["synthetic_fixture"] is True and res["partial"] is False
     assert res["claim_level"]["n"] == 10 and res["claim_level"]["n_mixed_excluded"] == 0
     assert res["tau_tuning"]["split"] == "train" and res["tau_tuning"]["leak"] is False
