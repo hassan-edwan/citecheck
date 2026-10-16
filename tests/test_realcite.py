@@ -13,18 +13,22 @@ class FakeS2:
     """Answers like the Graph API: batch titles (wrong for docs in `bad`), citations, and 429s for docs in `limited`
     the first `limited_times` times they are asked."""
 
-    def __init__(self, by_id, bad=(), limited=(), limited_times=1):
-        self.by_id, self.bad, self.calls = by_id, set(bad), []
+    def __init__(self, by_id, bad=(), limited=(), limited_times=1, batch_status="ok"):
+        self.by_id, self.bad, self.calls, self.batch_status = by_id, set(bad), [], batch_status
         self.limited = {d: limited_times for d in limited}
 
     def post(self, url, params=None, json_body=None):
         self.calls.append(url)
         ids = [i.split(":")[1] for i in json_body["ids"]]
+        if self.batch_status != "ok":
+            return self.batch_status, None
         return "ok", [{"title": "something else entirely" if d in self.bad else self.by_id[d].title} for d in ids]
 
     def get(self, url, params=None):
         self.calls.append(url)
         doc_id = url.split("CorpusId:")[1].split("/")[0]
+        if not url.endswith("/citations"):  # single title lookup
+            return "ok", {"title": "something else entirely" if doc_id in self.bad else self.by_id[doc_id].title}
         if self.limited.get(doc_id, 0) > 0:
             self.limited[doc_id] -= 1
             return "rate_limited", None
@@ -164,3 +168,13 @@ def test_review_sheet_round_trip(fixture_dir, tmp_path):
         w.writerows(table)
     with pytest.raises(ValueError):
         S.import_review(lab, raw, sheet, "Ritika")
+
+
+def test_a_refused_batch_falls_back_to_single_lookups(fixture_dir):
+    corpus = load_corpus(fixture_dir / "corpus.jsonl")
+    by_id = {d.doc_id: d for d in corpus}
+    ids = sorted(by_id)[:3]
+    s2, logs = FakeS2(by_id, bad=[ids[0]], batch_status="rate_limited"), []
+    rows, _ = C.collect(by_id, ids, s2, 3, 1, random.Random(0), log=logs.append)
+    assert {r["cited_doc_id"] for r in rows} == set(ids[1:]) and any("one by one" in line for line in logs)
+    assert sum(u.endswith(f"CorpusId:{d}") for u in s2.calls for d in ids) == 3   # one title lookup per paper
