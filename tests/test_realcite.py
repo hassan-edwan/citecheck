@@ -10,22 +10,30 @@ from tools import collect_citations as C
 
 
 class FakeS2:
-    """Answers like the Graph API; titles match for every doc except 'bad'."""
+    """Answers like the Graph API: batch titles (wrong for docs in `bad`), citations, and 429s for docs in `limited`
+    the first `limited_times` times they are asked."""
 
-    def __init__(self, by_id, bad=()):
+    def __init__(self, by_id, bad=(), limited=(), limited_times=1):
         self.by_id, self.bad, self.calls = by_id, set(bad), []
+        self.limited = {d: limited_times for d in limited}
+
+    def post(self, url, params=None, json_body=None):
+        self.calls.append(url)
+        ids = [i.split(":")[1] for i in json_body["ids"]]
+        return "ok", [{"title": "something else entirely" if d in self.bad else self.by_id[d].title} for d in ids]
 
     def get(self, url, params=None):
         self.calls.append(url)
         doc_id = url.split("CorpusId:")[1].split("/")[0]
-        if url.endswith("/citations"):
-            return {"data": [
-                {"citingPaper": {"paperId": "cp1", "title": "Citer one", "year": 2021}, "intents": ["result"],
-                 "contexts": [f"Earlier work showed {self.by_id[doc_id].title.lower()} matters a great deal [4]."]},
-                {"citingPaper": {"paperId": "cp2", "title": "Citer two", "year": 2022}, "intents": [],
-                 "contexts": ["short", f"We used the method of [9] described in {doc_id} for our analysis here."]},
-            ]}
-        return {"title": "something else entirely" if doc_id in self.bad else self.by_id[doc_id].title}
+        if self.limited.get(doc_id, 0) > 0:
+            self.limited[doc_id] -= 1
+            return "rate_limited", None
+        return "ok", {"data": [
+            {"citingPaper": {"paperId": "cp1", "title": "Citer one", "year": 2021}, "intents": ["result"],
+             "contexts": [f"Earlier work showed {self.by_id[doc_id].title.lower()} matters a great deal [4]."]},
+            {"citingPaper": {"paperId": "cp2", "title": "Citer two", "year": 2022}, "intents": [],
+             "contexts": ["short", f"We used the method of [9] described in {doc_id} for our analysis here."]},
+        ]}
 
 
 def test_eligible_docs_exclude_everything_train_uses(fixture_dir):
@@ -43,9 +51,39 @@ def test_collect_checks_titles_and_samples(fixture_dir):
     rows, checked = C.collect(by_id, ids, FakeS2(by_id, bad=[ids[0]]), n_papers=2, per_paper=2, rng=random.Random(0),
                               log=lambda *_: None)
     assert checked == 3 and {r["cited_doc_id"] for r in rows} == set(ids[1:])   # title mismatch skipped
+    assert sum("/batch" in u for u in fake_calls(by_id, ids)) == 1               # one batch call for all titles
     assert all(len(r["context"]) >= 40 and r["context_sha1"] == C.context_sha1(r["context"]) for r in rows)
     assert len({r["pair_id"] for r in rows}) == len(rows)
     assert C.title_match("Zorvex and bones", "zorvex AND bones!") == 1.0
+
+
+def fake_calls(by_id, ids):
+    s2 = FakeS2(by_id)
+    C.collect(by_id, ids, s2, 2, 2, random.Random(0), log=lambda *_: None)
+    return s2.calls
+
+
+def test_rate_limited_papers_are_retried_and_reported(fixture_dir):
+    corpus = load_corpus(fixture_dir / "corpus.jsonl")
+    by_id = {d.doc_id: d for d in corpus}
+    ids = sorted(by_id)[:3]
+    logs = []
+    rows, _ = C.collect(by_id, ids, FakeS2(by_id, limited=[ids[0]]), 3, 1, random.Random(0), log=logs.append)
+    assert {r["cited_doc_id"] for r in rows} == set(ids)                        # retried once at the end, then kept
+    assert any("rate limited" in line for line in logs) and not any("title mismatch" in line for line in logs)
+    rows, _ = C.collect(by_id, ids, FakeS2(by_id, limited=[ids[0]], limited_times=9), 3, 1, random.Random(0), log=logs.append)
+    assert ids[0] not in {r["cited_doc_id"] for r in rows} and logs[-1] == "skipped: rate_limited 2"  # first pass + retry
+
+
+def test_collect_resumes_and_saves_as_it_goes(fixture_dir):
+    corpus = load_corpus(fixture_dir / "corpus.jsonl")
+    by_id = {d.doc_id: d for d in corpus}
+    ids = sorted(by_id)[:3]
+    saved = []
+    rows, _ = C.collect(by_id, ids, FakeS2(by_id), 3, 1, random.Random(0), log=lambda *_: None,
+                        done={ids[0]}, on_rows=saved.extend)
+    assert ids[0] not in {r["cited_doc_id"] for r in rows} and len({r["cited_doc_id"] for r in rows}) == 2
+    assert saved == rows
 
 
 def write_set(tmp_path, fixture_dir, labels):
