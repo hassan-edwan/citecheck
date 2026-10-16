@@ -1,17 +1,17 @@
 {
   "name": "finetuned_nli_selector_v2_capped",
-  "created_utc": "2026-10-16T17:38:18+00:00",
+  "created_utc": "2026-10-16T17:45:11+00:00",
   "split": "dev",
   "synthetic_fixture": false,
   "partial": false,
   "config": {
     "retriever": "bm25",
     "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
-    "verifier": "nli:/content/drive/MyDrive/citecheck-models/ft-base-sel",
+    "verifier": "nli:hassanedwan/citecheck-nli-ft-base-sel",
     "k": 3,
     "sentences_per_paper": 3,
     "evidence_unit": "window",
-    "sentence_scorer": "cross:/content/drive/MyDrive/citecheck-models/selector",
+    "sentence_scorer": "cross:hassanedwan/citecheck-sentence-selector",
     "tau": 0.5,
     "margin": 0.0,
     "trained_on_unit": "window"
@@ -278,13 +278,13 @@
     }
   ],
   "timing": {
-    "retrieval_ms_per_claim": 16.536688736667504,
-    "verify_ms_per_claim": 89.58328450333283,
+    "retrieval_ms_per_claim": 9.968195439981477,
+    "verify_ms_per_claim": 73.5200639300001,
     "n_params": 184424451,
     "device": "cuda"
   },
   "provenance": {
-    "git_commit": "7208da97dec3f14d5db1bb0932ec295ba98c5f7a",
+    "git_commit": "bff4a1e2124200404acc0a03f6e280e128753364",
     "versions": {
       "python": "3.13.15",
       "platform": "Linux-6.6.122+-x86_64-with-glibc2.39",
@@ -302,16 +302,15 @@
       "--verifier",
       "nli",
       "--model",
-      "/content/drive/MyDrive/citecheck-models/ft-base-sel",
+      "hassanedwan/citecheck-nli-ft-base-sel",
       "--sentence-scorer",
-      "cross:/content/drive/MyDrive/citecheck-models/selector",
+      "cross:hassanedwan/citecheck-sentence-selector",
       "--tune-fs-cap",
       "0.10",
       "--oracle",
       "--compare-with",
       "eval/results/finetuned_nli",
-      "--compare-with",
-      "eval/results/finetuned_nli_capped"
+      "--promote"
     ],
     "seed": 0
   },
@@ -381,16 +380,6 @@
         "p_a_better": 0.989,
         "vs": "finetuned_nli",
         "n": 300
-      },
-      {
-        "diff": 0.054638148921119845,
-        "ci95": [
-          0.012128103628294435,
-          0.10105160833541342
-        ],
-        "p_a_better": 0.989,
-        "vs": "finetuned_nli_capped",
-        "n": 300
       }
     ]
   },
@@ -412,16 +401,6 @@
       ],
       "p_a_better": 0.966,
       "vs": "finetuned_nli",
-      "n": 300
-    },
-    {
-      "diff": 0.04229687355741951,
-      "ci95": [
-        -0.0025019757711959153,
-        0.08420226181583776
-      ],
-      "p_a_better": 0.966,
-      "vs": "finetuned_nli_capped",
       "n": 300
     }
   ]
