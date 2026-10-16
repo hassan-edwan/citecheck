@@ -1,0 +1,428 @@
+{
+  "name": "finetuned_nli_selector_v2_capped",
+  "created_utc": "2026-10-16T17:38:18+00:00",
+  "split": "dev",
+  "synthetic_fixture": false,
+  "partial": false,
+  "config": {
+    "retriever": "bm25",
+    "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "verifier": "nli:/content/drive/MyDrive/citecheck-models/ft-base-sel",
+    "k": 3,
+    "sentences_per_paper": 3,
+    "evidence_unit": "window",
+    "sentence_scorer": "cross:/content/drive/MyDrive/citecheck-models/selector",
+    "tau": 0.5,
+    "margin": 0.0,
+    "trained_on_unit": "window"
+  },
+  "tau_tuning": {
+    "method": "grid_max_macro_f1",
+    "split": "train",
+    "n_claims": 200,
+    "tuned_macro_f1": 0.7612621925592022,
+    "tuned_false_support_rate": 0.08620689655172414,
+    "fs_cap": 0.1,
+    "met_fs_cap": true,
+    "leak": false,
+    "n_tuning_claims_seen_in_finetuning": 0
+  },
+  "data": {
+    "dir": "data/scifact",
+    "sha256_prefix": {
+      "corpus": "b8d6c89624cb2ed7",
+      "dev": "86f0435d08fdb65d"
+    },
+    "n_corpus": 5183,
+    "n_claims": 300,
+    "label_distribution": {
+      "NEI": 112,
+      "SUPPORT": 124,
+      "CONTRADICT": 64
+    }
+  },
+  "claim_level": {
+    "n": 300,
+    "n_mixed_excluded": 0,
+    "macro_f1": 0.7355355144596117,
+    "macro_f1_ci95": [
+      0.6837779041838984,
+      0.7838616677003577
+    ],
+    "accuracy": 0.7466666666666667,
+    "per_class": {
+      "SUPPORT": {
+        "precision": 0.8490566037735849,
+        "recall": 0.7258064516129032,
+        "f1": 0.782608695652174,
+        "support": 124
+      },
+      "CONTRADICT": {
+        "precision": 0.7407407407407407,
+        "recall": 0.625,
+        "f1": 0.6779661016949152,
+        "support": 64
+      },
+      "NEI": {
+        "precision": 0.6714285714285714,
+        "recall": 0.8392857142857143,
+        "f1": 0.746031746031746,
+        "support": 112
+      }
+    },
+    "confusion_rows_gold_cols_pred": {
+      "labels": [
+        "SUPPORT",
+        "CONTRADICT",
+        "NEI"
+      ],
+      "matrix": [
+        [
+          90,
+          6,
+          28
+        ],
+        [
+          6,
+          40,
+          18
+        ],
+        [
+          10,
+          8,
+          94
+        ]
+      ]
+    },
+    "false_support_rate": 0.09090909090909091,
+    "support_precision": 0.8490566037735849,
+    "coverage": 0.5333333333333333
+  },
+  "retrieval": {
+    "n_claims": 188,
+    "recall@1": 0.7216312056737588,
+    "hit@1": 0.7340425531914894,
+    "precision@1": 0.7340425531914894,
+    "recall@3": 0.8408687943262412,
+    "hit@3": 0.8563829787234043,
+    "precision@3": 0.29432624113475175,
+    "recall@5": 0.8820921985815603,
+    "hit@5": 0.898936170212766,
+    "precision@5": 0.18617021276595744,
+    "recall@10": 0.9405141843971631,
+    "hit@10": 0.9521276595744681,
+    "precision@10": 0.10159574468085107,
+    "recall@20": 0.9578014184397163,
+    "hit@20": 0.9680851063829787,
+    "precision@20": 0.05186170212765957,
+    "mrr": 0.8096055439210534,
+    "ndcg@10": 0.8383783006706879,
+    "avg_gold_docs_per_claim": 1.1117021276595744
+  },
+  "abstract_level": {
+    "label_only": {
+      "precision": 0.5980861244019139,
+      "recall": 0.5980861244019139,
+      "f1": 0.5980861244019139,
+      "n_pred": 209,
+      "n_gold": 209,
+      "n_correct": 125
+    },
+    "label_and_rationale": {
+      "precision": 0.569377990430622,
+      "recall": 0.569377990430622,
+      "f1": 0.569377990430622,
+      "n_pred": 209,
+      "n_gold": 209,
+      "n_correct": 119
+    }
+  },
+  "sentence_selection": {
+    "m": 3,
+    "n_gold_papers": 209,
+    "rationale_recall_at_m": 0.937799043062201
+  },
+  "tau_sweep_analysis_only": [
+    {
+      "tau": 0.05,
+      "macro_f1": 0.7095324612403102,
+      "false_support_rate": 0.17613636363636365,
+      "support_precision": 0.7651515151515151,
+      "coverage": 0.6566666666666666
+    },
+    {
+      "tau": 0.1,
+      "macro_f1": 0.7286400835029205,
+      "false_support_rate": 0.14204545454545456,
+      "support_precision": 0.8,
+      "coverage": 0.63
+    },
+    {
+      "tau": 0.15,
+      "macro_f1": 0.7214865913254865,
+      "false_support_rate": 0.13636363636363635,
+      "support_precision": 0.8,
+      "coverage": 0.61
+    },
+    {
+      "tau": 0.2,
+      "macro_f1": 0.7190058505886077,
+      "false_support_rate": 0.13068181818181818,
+      "support_precision": 0.8034188034188035,
+      "coverage": 0.6
+    },
+    {
+      "tau": 0.25,
+      "macro_f1": 0.7154696072521837,
+      "false_support_rate": 0.125,
+      "support_precision": 0.8070175438596491,
+      "coverage": 0.5833333333333334
+    },
+    {
+      "tau": 0.3,
+      "macro_f1": 0.7219837798432659,
+      "false_support_rate": 0.11363636363636363,
+      "support_precision": 0.8214285714285714,
+      "coverage": 0.5733333333333334
+    },
+    {
+      "tau": 0.35,
+      "macro_f1": 0.7202193182473411,
+      "false_support_rate": 0.10795454545454546,
+      "support_precision": 0.8288288288288288,
+      "coverage": 0.5666666666666667
+    },
+    {
+      "tau": 0.4,
+      "macro_f1": 0.7210078931390407,
+      "false_support_rate": 0.10795454545454546,
+      "support_precision": 0.8272727272727273,
+      "coverage": 0.56
+    },
+    {
+      "tau": 0.45,
+      "macro_f1": 0.7310283030527747,
+      "false_support_rate": 0.09659090909090909,
+      "support_precision": 0.8425925925925926,
+      "coverage": 0.5466666666666666
+    },
+    {
+      "tau": 0.5,
+      "macro_f1": 0.7355355144596117,
+      "false_support_rate": 0.09090909090909091,
+      "support_precision": 0.8490566037735849,
+      "coverage": 0.5333333333333333
+    },
+    {
+      "tau": 0.55,
+      "macro_f1": 0.7327805606888994,
+      "false_support_rate": 0.09090909090909091,
+      "support_precision": 0.8476190476190476,
+      "coverage": 0.53
+    },
+    {
+      "tau": 0.6,
+      "macro_f1": 0.7300178021904266,
+      "false_support_rate": 0.09090909090909091,
+      "support_precision": 0.8461538461538461,
+      "coverage": 0.5266666666666666
+    },
+    {
+      "tau": 0.65,
+      "macro_f1": 0.7327937156968352,
+      "false_support_rate": 0.07954545454545454,
+      "support_precision": 0.8613861386138614,
+      "coverage": 0.5166666666666667
+    },
+    {
+      "tau": 0.7,
+      "macro_f1": 0.7343485537451055,
+      "false_support_rate": 0.07386363636363637,
+      "support_precision": 0.87,
+      "coverage": 0.5066666666666667
+    },
+    {
+      "tau": 0.75,
+      "macro_f1": 0.7295377113030787,
+      "false_support_rate": 0.07386363636363637,
+      "support_precision": 0.87,
+      "coverage": 0.5033333333333333
+    },
+    {
+      "tau": 0.8,
+      "macro_f1": 0.7191042717358506,
+      "false_support_rate": 0.07386363636363637,
+      "support_precision": 0.8673469387755102,
+      "coverage": 0.49333333333333335
+    },
+    {
+      "tau": 0.85,
+      "macro_f1": 0.7255527332588086,
+      "false_support_rate": 0.0625,
+      "support_precision": 0.8854166666666666,
+      "coverage": 0.48333333333333334
+    },
+    {
+      "tau": 0.9,
+      "macro_f1": 0.7126553258947625,
+      "false_support_rate": 0.045454545454545456,
+      "support_precision": 0.9101123595505618,
+      "coverage": 0.45666666666666667
+    },
+    {
+      "tau": 0.95,
+      "macro_f1": 0.719959982888236,
+      "false_support_rate": 0.022727272727272728,
+      "support_precision": 0.9518072289156626,
+      "coverage": 0.43
+    }
+  ],
+  "timing": {
+    "retrieval_ms_per_claim": 16.536688736667504,
+    "verify_ms_per_claim": 89.58328450333283,
+    "n_params": 184424451,
+    "device": "cuda"
+  },
+  "provenance": {
+    "git_commit": "7208da97dec3f14d5db1bb0932ec295ba98c5f7a",
+    "versions": {
+      "python": "3.13.15",
+      "platform": "Linux-6.6.122+-x86_64-with-glibc2.39",
+      "torch": "2.11.0+cu130",
+      "transformers": "5.18.0",
+      "sentence_transformers": "5.7.0",
+      "rank_bm25": "0.2.2",
+      "numpy": "2.1.3"
+    },
+    "argv": [
+      "--name",
+      "finetuned_nli_selector_v2_capped",
+      "--retriever",
+      "bm25",
+      "--verifier",
+      "nli",
+      "--model",
+      "/content/drive/MyDrive/citecheck-models/ft-base-sel",
+      "--sentence-scorer",
+      "cross:/content/drive/MyDrive/citecheck-models/selector",
+      "--tune-fs-cap",
+      "0.10",
+      "--oracle",
+      "--compare-with",
+      "eval/results/finetuned_nli",
+      "--compare-with",
+      "eval/results/finetuned_nli_capped"
+    ],
+    "seed": 0
+  },
+  "cited_paper": {
+    "n": 300,
+    "n_mixed_excluded": 0,
+    "macro_f1": 0.781513997862391,
+    "macro_f1_ci95": [
+      0.7283201958665414,
+      0.8317145623681571
+    ],
+    "accuracy": 0.7933333333333333,
+    "per_class": {
+      "SUPPORT": {
+        "precision": 0.8942307692307693,
+        "recall": 0.75,
+        "f1": 0.8157894736842106,
+        "support": 124
+      },
+      "CONTRADICT": {
+        "precision": 0.8367346938775511,
+        "recall": 0.640625,
+        "f1": 0.7256637168141593,
+        "support": 64
+      },
+      "NEI": {
+        "precision": 0.7074829931972789,
+        "recall": 0.9285714285714286,
+        "f1": 0.8030888030888031,
+        "support": 112
+      }
+    },
+    "confusion_rows_gold_cols_pred": {
+      "labels": [
+        "SUPPORT",
+        "CONTRADICT",
+        "NEI"
+      ],
+      "matrix": [
+        [
+          93,
+          4,
+          27
+        ],
+        [
+          7,
+          41,
+          16
+        ],
+        [
+          4,
+          4,
+          104
+        ]
+      ]
+    },
+    "false_support_rate": 0.0625,
+    "support_precision": 0.8942307692307693,
+    "coverage": 0.51,
+    "paired_comparisons": [
+      {
+        "diff": 0.054638148921119845,
+        "ci95": [
+          0.012128103628294435,
+          0.10105160833541342
+        ],
+        "p_a_better": 0.989,
+        "vs": "finetuned_nli",
+        "n": 300
+      },
+      {
+        "diff": 0.054638148921119845,
+        "ci95": [
+          0.012128103628294435,
+          0.10105160833541342
+        ],
+        "p_a_better": 0.989,
+        "vs": "finetuned_nli_capped",
+        "n": 300
+      }
+    ]
+  },
+  "error_attribution": {
+    "end_to_end": 0.7355355144596117,
+    "oracle_doc": 0.781513997862391,
+    "oracle_rationale": 0.8662240654409358,
+    "loss_from_retrieval": 0.04597848340277921,
+    "loss_from_sentence_selection": 0.08471006757854482,
+    "remaining_gap_is_verifier": 0.13377593455906422,
+    "reading": "macro-F1 with the gold paper(s) supplied (oracle_doc) or gold paper+sentences (oracle_rationale). loss_from_retrieval = what better retrieval could buy; remaining_gap_is_verifier = what only a better classifier can fix."
+  },
+  "paired_comparisons": [
+    {
+      "diff": 0.04229687355741951,
+      "ci95": [
+        -0.0025019757711959153,
+        0.08420226181583776
+      ],
+      "p_a_better": 0.966,
+      "vs": "finetuned_nli",
+      "n": 300
+    },
+    {
+      "diff": 0.04229687355741951,
+      "ci95": [
+        -0.0025019757711959153,
+        0.08420226181583776
+      ],
+      "p_a_better": 0.966,
+      "vs": "finetuned_nli_capped",
+      "n": 300
+    }
+  ]
+}

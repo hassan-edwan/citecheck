@@ -1,0 +1,300 @@
+{"id": 1, "gold": "NEI", "pred": "NEI", "confidence": 0.9997435926052276, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 3, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9997508665837813, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 5, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9988077072193846, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 13, "gold": "NEI", "pred": "NEI", "confidence": 0.999755235039629, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 36, "gold": "NEI", "pred": "NEI", "confidence": 0.9793076869100332, "abstained": true, "note": "strongest evidence 0.02 is below threshold 0.50", "driver_doc": null}
+{"id": 42, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9401139803230762, "abstained": true, "note": "strongest evidence 0.06 is below threshold 0.50", "driver_doc": null}
+{"id": 48, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9994762723799795, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 49, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9938653111457825, "abstained": false, "note": "", "driver_doc": "5953485"}
+{"id": 50, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9959126114845276, "abstained": false, "note": "", "driver_doc": "12580014"}
+{"id": 51, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9989062547683716, "abstained": false, "note": "", "driver_doc": "45638119"}
+{"id": 53, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9990580677986145, "abstained": false, "note": "", "driver_doc": "45638119"}
+{"id": 54, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9986699819564819, "abstained": false, "note": "", "driver_doc": "49556906"}
+{"id": 56, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.6274450421333313, "abstained": false, "note": "", "driver_doc": "4709641"}
+{"id": 57, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9802344441413879, "abstained": false, "note": "", "driver_doc": "4709641"}
+{"id": 70, "gold": "SUPPORT", "pred": "CONTRADICT", "confidence": 0.98026043176651, "abstained": false, "note": "", "driver_doc": "5956380"}
+{"id": 72, "gold": "NEI", "pred": "NEI", "confidence": 0.9865936012938619, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 75, "gold": "NEI", "pred": "NEI", "confidence": 0.9983799651963636, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 94, "gold": "NEI", "pred": "NEI", "confidence": 0.9972657668404281, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 99, "gold": "NEI", "pred": "NEI", "confidence": 0.9998002553911647, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 100, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9522214531898499, "abstained": false, "note": "", "driver_doc": "4381486"}
+{"id": 113, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9982581734657288, "abstained": false, "note": "", "driver_doc": "6157837"}
+{"id": 115, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9997466933855321, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 118, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9988201260566711, "abstained": false, "note": "", "driver_doc": "6372244"}
+{"id": 124, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9936634302139282, "abstained": false, "note": "", "driver_doc": "4883040"}
+{"id": 127, "gold": "NEI", "pred": "NEI", "confidence": 0.999743714928627, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 128, "gold": "NEI", "pred": "NEI", "confidence": 0.9996832597826142, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 129, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9975492358207703, "abstained": false, "note": "", "driver_doc": "27768226"}
+{"id": 130, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9971966743469238, "abstained": false, "note": "", "driver_doc": "27768226"}
+{"id": 132, "gold": "NEI", "pred": "NEI", "confidence": 0.9992439312045462, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 133, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9839093089103699, "abstained": false, "note": "", "driver_doc": "16280642"}
+{"id": 137, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9989029648713768, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 141, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9165998697280884, "abstained": true, "note": "strongest evidence 0.08 is below threshold 0.50", "driver_doc": null}
+{"id": 142, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9984846711158752, "abstained": false, "note": "", "driver_doc": "10582939"}
+{"id": 143, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9977961778640747, "abstained": false, "note": "", "driver_doc": "10582939"}
+{"id": 146, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9982062578201294, "abstained": false, "note": "", "driver_doc": "10582939"}
+{"id": 148, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9931147694587708, "abstained": false, "note": "", "driver_doc": "1084345"}
+{"id": 163, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9976934536825866, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 171, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9975460171699524, "abstained": false, "note": "", "driver_doc": "12670680"}
+{"id": 179, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9986652135848999, "abstained": false, "note": "", "driver_doc": "16322674"}
+{"id": 180, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9977109432220459, "abstained": false, "note": "", "driver_doc": "16966326"}
+{"id": 183, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9847305035218596, "abstained": true, "note": "strongest evidence 0.02 is below threshold 0.50", "driver_doc": null}
+{"id": 185, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9900336861610413, "abstained": false, "note": "", "driver_doc": "18340282"}
+{"id": 198, "gold": "NEI", "pred": "NEI", "confidence": 0.9994518223102205, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 208, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9811297059059143, "abstained": false, "note": "", "driver_doc": "13519661"}
+{"id": 212, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.6205403208732605, "abstained": false, "note": "", "driver_doc": "22038539"}
+{"id": 213, "gold": "NEI", "pred": "NEI", "confidence": 0.999648037541192, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 216, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9978729486465454, "abstained": false, "note": "", "driver_doc": "21366394"}
+{"id": 217, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.998241662979126, "abstained": false, "note": "", "driver_doc": "21366394"}
+{"id": 218, "gold": "SUPPORT", "pred": "CONTRADICT", "confidence": 0.8751833438873291, "abstained": false, "note": "", "driver_doc": "21366394"}
+{"id": 219, "gold": "CONTRADICT", "pred": "SUPPORT", "confidence": 0.9913926124572754, "abstained": false, "note": "", "driver_doc": "21366394"}
+{"id": 230, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9961845278739929, "abstained": false, "note": "", "driver_doc": "3067015"}
+{"id": 232, "gold": "NEI", "pred": "NEI", "confidence": 0.9996581426239572, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 233, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.961401354521513, "abstained": true, "note": "strongest evidence 0.04 is below threshold 0.50", "driver_doc": null}
+{"id": 236, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9958977103233337, "abstained": false, "note": "", "driver_doc": "4388470"}
+{"id": 237, "gold": "NEI", "pred": "NEI", "confidence": 0.9397405795753002, "abstained": true, "note": "strongest evidence 0.06 is below threshold 0.50", "driver_doc": null}
+{"id": 238, "gold": "NEI", "pred": "NEI", "confidence": 0.999560528784059, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 239, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.999248220527079, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 248, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9222748279571533, "abstained": false, "note": "", "driver_doc": "1568684"}
+{"id": 249, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.998408854007721, "abstained": false, "note": "", "driver_doc": "1568684"}
+{"id": 261, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.7389745712280273, "abstained": false, "note": "", "driver_doc": "1122279"}
+{"id": 268, "gold": "NEI", "pred": "NEI", "confidence": 0.9992900094948709, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 269, "gold": "NEI", "pred": "NEI", "confidence": 0.9983453896129504, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 274, "gold": "CONTRADICT", "pred": "SUPPORT", "confidence": 0.9771975874900818, "abstained": false, "note": "", "driver_doc": "11614737"}
+{"id": 275, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9819698259234428, "abstained": true, "note": "strongest evidence 0.02 is below threshold 0.50", "driver_doc": null}
+{"id": 279, "gold": "SUPPORT", "pred": "CONTRADICT", "confidence": 0.9489333629608154, "abstained": false, "note": "", "driver_doc": "14376683"}
+{"id": 294, "gold": "NEI", "pred": "NEI", "confidence": 0.9996710819541477, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 295, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.6526188254356384, "abstained": false, "note": "", "driver_doc": "20310709"}
+{"id": 298, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9819466471672058, "abstained": false, "note": "", "driver_doc": "39381118"}
+{"id": 300, "gold": "NEI", "pred": "SUPPORT", "confidence": 0.9604238271713257, "abstained": false, "note": "", "driver_doc": "3553087"}
+{"id": 303, "gold": "NEI", "pred": "NEI", "confidence": 0.9996421935211401, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 312, "gold": "NEI", "pred": "NEI", "confidence": 0.9995691773074213, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 314, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.8191641569137573, "abstained": true, "note": "strongest evidence 0.18 is below threshold 0.50", "driver_doc": null}
+{"id": 324, "gold": "NEI", "pred": "NEI", "confidence": 0.9922328698448837, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 327, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9987745881080627, "abstained": false, "note": "", "driver_doc": "17997584"}
+{"id": 338, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.998252809047699, "abstained": false, "note": "", "driver_doc": "23349986"}
+{"id": 343, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9995092073804699, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 350, "gold": "NEI", "pred": "NEI", "confidence": 0.8233716785907745, "abstained": true, "note": "strongest evidence 0.18 is below threshold 0.50", "driver_doc": null}
+{"id": 354, "gold": "NEI", "pred": "CONTRADICT", "confidence": 0.9986501336097717, "abstained": false, "note": "", "driver_doc": "8774475"}
+{"id": 362, "gold": "NEI", "pred": "NEI", "confidence": 0.9997552969434764, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 380, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9976467490196228, "abstained": false, "note": "", "driver_doc": "19005293"}
+{"id": 384, "gold": "NEI", "pred": "NEI", "confidence": 0.9998026835091878, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 385, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.7562223076820374, "abstained": false, "note": "", "driver_doc": "9955779"}
+{"id": 386, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9938203692436218, "abstained": false, "note": "", "driver_doc": "16495649"}
+{"id": 388, "gold": "NEI", "pred": "NEI", "confidence": 0.9997151360730641, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 399, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9943516254425049, "abstained": false, "note": "", "driver_doc": "791050"}
+{"id": 410, "gold": "NEI", "pred": "CONTRADICT", "confidence": 0.8222295045852661, "abstained": false, "note": "", "driver_doc": "14924526"}
+{"id": 411, "gold": "NEI", "pred": "SUPPORT", "confidence": 0.9034033417701721, "abstained": false, "note": "", "driver_doc": "14924526"}
+{"id": 415, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9987175464630127, "abstained": false, "note": "", "driver_doc": "6309659"}
+{"id": 421, "gold": "NEI", "pred": "NEI", "confidence": 0.9992279652506113, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 431, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.5667771697044373, "abstained": false, "note": "", "driver_doc": "28937856"}
+{"id": 436, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9919431209564209, "abstained": false, "note": "", "driver_doc": "14637235"}
+{"id": 437, "gold": "NEI", "pred": "NEI", "confidence": 0.9998325275810203, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 439, "gold": "NEI", "pred": "NEI", "confidence": 0.9996544941386674, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 440, "gold": "NEI", "pred": "NEI", "confidence": 0.9996813504258171, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 443, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.996723473072052, "abstained": false, "note": "", "driver_doc": "10165258"}
+{"id": 452, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9215271398425102, "abstained": true, "note": "strongest evidence 0.08 is below threshold 0.50", "driver_doc": null}
+{"id": 475, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.990399893373251, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 478, "gold": "NEI", "pred": "NEI", "confidence": 0.997151450952515, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 491, "gold": "NEI", "pred": "NEI", "confidence": 0.9789750929921865, "abstained": true, "note": "strongest evidence 0.02 is below threshold 0.50", "driver_doc": null}
+{"id": 501, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9919581413269043, "abstained": false, "note": "", "driver_doc": "17930286"}
+{"id": 502, "gold": "NEI", "pred": "NEI", "confidence": 0.9991967197274789, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 507, "gold": "NEI", "pred": "SUPPORT", "confidence": 0.9422011375427246, "abstained": false, "note": "", "driver_doc": "30774694"}
+{"id": 508, "gold": "NEI", "pred": "NEI", "confidence": 0.9998070308938622, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 513, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9984556436538696, "abstained": false, "note": "", "driver_doc": "13230773"}
+{"id": 514, "gold": "NEI", "pred": "NEI", "confidence": 0.8684833645820618, "abstained": true, "note": "strongest evidence 0.13 is below threshold 0.50", "driver_doc": null}
+{"id": 516, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9989765882492065, "abstained": false, "note": "", "driver_doc": "29564505"}
+{"id": 517, "gold": "NEI", "pred": "NEI", "confidence": 0.9979807969648391, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 521, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9993097165133804, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 525, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.998027202906087, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 527, "gold": "NEI", "pred": "NEI", "confidence": 0.9997988818649901, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 528, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9566824436187744, "abstained": false, "note": "", "driver_doc": "5476778"}
+{"id": 532, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9976896350272, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 533, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9985719989053905, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 535, "gold": "NEI", "pred": "NEI", "confidence": 0.9990606637438759, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 536, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9954169988632202, "abstained": false, "note": "", "driver_doc": "16056514"}
+{"id": 539, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.8916854858398438, "abstained": false, "note": "", "driver_doc": "13282296"}
+{"id": 540, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9985813073581085, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 544, "gold": "NEI", "pred": "NEI", "confidence": 0.9998208852048265, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 549, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9536315202713013, "abstained": false, "note": "", "driver_doc": "9433958"}
+{"id": 551, "gold": "NEI", "pred": "NEI", "confidence": 0.9998060088109924, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 552, "gold": "NEI", "pred": "NEI", "confidence": 0.9872247194871306, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 554, "gold": "NEI", "pred": "NEI", "confidence": 0.9993761442019604, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 560, "gold": "NEI", "pred": "NEI", "confidence": 0.9996367968269624, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 569, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.997710108757019, "abstained": false, "note": "", "driver_doc": "23460562"}
+{"id": 575, "gold": "NEI", "pred": "NEI", "confidence": 0.999850607913686, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 577, "gold": "NEI", "pred": "NEI", "confidence": 0.9764965884387493, "abstained": true, "note": "strongest evidence 0.02 is below threshold 0.50", "driver_doc": null}
+{"id": 578, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9556241035461426, "abstained": false, "note": "", "driver_doc": "8764879"}
+{"id": 587, "gold": "NEI", "pred": "NEI", "confidence": 0.9997871087543899, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 589, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.992143988609314, "abstained": false, "note": "", "driver_doc": "10984005"}
+{"id": 593, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9308722391724586, "abstained": true, "note": "strongest evidence 0.07 is below threshold 0.50", "driver_doc": null}
+{"id": 597, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9719911590218544, "abstained": true, "note": "strongest evidence 0.03 is below threshold 0.50", "driver_doc": null}
+{"id": 598, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9993033114005812, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 613, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9986287355422974, "abstained": false, "note": "", "driver_doc": "9638032"}
+{"id": 619, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9914318304508924, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 623, "gold": "NEI", "pred": "NEI", "confidence": 0.9997510445537046, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 628, "gold": "NEI", "pred": "NEI", "confidence": 0.9995369992975611, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 636, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9931677198037505, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 637, "gold": "NEI", "pred": "NEI", "confidence": 0.9998063274542801, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 641, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.6685709357261658, "abstained": false, "note": "", "driver_doc": "5912283"}
+{"id": 644, "gold": "NEI", "pred": "NEI", "confidence": 0.9876087382435799, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 649, "gold": "NEI", "pred": "NEI", "confidence": 0.5761092901229858, "abstained": true, "note": "strongest evidence 0.42 is below threshold 0.50", "driver_doc": null}
+{"id": 659, "gold": "NEI", "pred": "NEI", "confidence": 0.9956570817157626, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 660, "gold": "NEI", "pred": "NEI", "confidence": 0.9954885309562087, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 674, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9989491105079651, "abstained": false, "note": "", "driver_doc": "2095573"}
+{"id": 684, "gold": "NEI", "pred": "NEI", "confidence": 0.9996284301450942, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 690, "gold": "NEI", "pred": "NEI", "confidence": 0.9997751357150264, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 691, "gold": "NEI", "pred": "NEI", "confidence": 0.9997003827302251, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 692, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9759803283959627, "abstained": true, "note": "strongest evidence 0.02 is below threshold 0.50", "driver_doc": null}
+{"id": 693, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9941288232803345, "abstained": false, "note": "", "driver_doc": "24088502"}
+{"id": 700, "gold": "NEI", "pred": "NEI", "confidence": 0.9997199394274503, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 702, "gold": "NEI", "pred": "NEI", "confidence": 0.9996162309835199, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 715, "gold": "NEI", "pred": "NEI", "confidence": 0.9988563170190901, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 716, "gold": "NEI", "pred": "NEI", "confidence": 0.9998113835754339, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 718, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.5929836928844452, "abstained": true, "note": "strongest evidence 0.41 is below threshold 0.50", "driver_doc": null}
+{"id": 721, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9988411068916321, "abstained": false, "note": "", "driver_doc": "1834762"}
+{"id": 723, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9983015060424805, "abstained": false, "note": "", "driver_doc": "5531479"}
+{"id": 727, "gold": "NEI", "pred": "NEI", "confidence": 0.9991917574661784, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 728, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.6851410269737244, "abstained": false, "note": "", "driver_doc": "36444198"}
+{"id": 729, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9992009997367859, "abstained": false, "note": "", "driver_doc": "26851674"}
+{"id": 742, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.7288636267185211, "abstained": true, "note": "strongest evidence 0.27 is below threshold 0.50", "driver_doc": null}
+{"id": 743, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.69985231757164, "abstained": true, "note": "strongest evidence 0.30 is below threshold 0.50", "driver_doc": null}
+{"id": 744, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.6285657286643982, "abstained": true, "note": "strongest evidence 0.37 is below threshold 0.50", "driver_doc": null}
+{"id": 756, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9189129620790482, "abstained": true, "note": "strongest evidence 0.08 is below threshold 0.50", "driver_doc": null}
+{"id": 759, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9965607875492424, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 768, "gold": "NEI", "pred": "NEI", "confidence": 0.9992797900922596, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 770, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9707092046737671, "abstained": false, "note": "", "driver_doc": "15476777"}
+{"id": 775, "gold": "NEI", "pred": "NEI", "confidence": 0.999727514834376, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 781, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9983004927635193, "abstained": false, "note": "", "driver_doc": "24338780"}
+{"id": 783, "gold": "NEI", "pred": "NEI", "confidence": 0.9994829751667567, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 784, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9946212768554688, "abstained": false, "note": "", "driver_doc": "2356950"}
+{"id": 785, "gold": "NEI", "pred": "NEI", "confidence": 0.6734206080436707, "abstained": true, "note": "strongest evidence 0.33 is below threshold 0.50", "driver_doc": null}
+{"id": 793, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9913026094436646, "abstained": false, "note": "", "driver_doc": "8551160"}
+{"id": 800, "gold": "NEI", "pred": "NEI", "confidence": 0.9985832162201405, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 805, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9985914826393127, "abstained": false, "note": "", "driver_doc": "22180793"}
+{"id": 808, "gold": "SUPPORT", "pred": "CONTRADICT", "confidence": 0.9212327599525452, "abstained": false, "note": "", "driver_doc": "36606083"}
+{"id": 811, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9843213558197021, "abstained": false, "note": "", "driver_doc": "19799455"}
+{"id": 814, "gold": "NEI", "pred": "NEI", "confidence": 0.9405220970511436, "abstained": true, "note": "strongest evidence 0.06 is below threshold 0.50", "driver_doc": null}
+{"id": 820, "gold": "NEI", "pred": "NEI", "confidence": 0.9998574290220859, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 821, "gold": "NEI", "pred": "NEI", "confidence": 0.9998078800417716, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 823, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9921466708183289, "abstained": false, "note": "", "driver_doc": "15319019"}
+{"id": 830, "gold": "NEI", "pred": "NEI", "confidence": 0.9995326187345199, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 831, "gold": "NEI", "pred": "NEI", "confidence": 0.9996498186665121, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 832, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9991187489358708, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 834, "gold": "NEI", "pred": "NEI", "confidence": 0.9996735436434392, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 837, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9937915205955505, "abstained": false, "note": "", "driver_doc": "15928989"}
+{"id": 839, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.5156455636024475, "abstained": true, "note": "strongest evidence 0.48 is below threshold 0.50", "driver_doc": null}
+{"id": 845, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9984887838363647, "abstained": false, "note": "", "driver_doc": "17741440"}
+{"id": 847, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9990874531213194, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 852, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9995890067948494, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 859, "gold": "CONTRADICT", "pred": "SUPPORT", "confidence": 0.7555805444717407, "abstained": false, "note": "", "driver_doc": "1982286"}
+{"id": 870, "gold": "NEI", "pred": "NEI", "confidence": 0.9990475181839429, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 873, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9986523985862732, "abstained": false, "note": "", "driver_doc": "1180972"}
+{"id": 879, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9751095380634069, "abstained": true, "note": "strongest evidence 0.02 is below threshold 0.50", "driver_doc": null}
+{"id": 880, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.7157465815544128, "abstained": false, "note": "", "driver_doc": "8426046"}
+{"id": 882, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9988834261894226, "abstained": false, "note": "", "driver_doc": "14803797"}
+{"id": 887, "gold": "NEI", "pred": "NEI", "confidence": 0.9990719683701172, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 903, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.998674750328064, "abstained": false, "note": "", "driver_doc": "10648422"}
+{"id": 904, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9990522265434265, "abstained": false, "note": "", "driver_doc": "7370282"}
+{"id": 907, "gold": "NEI", "pred": "NEI", "confidence": 0.9965727825183421, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 911, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9605757594108582, "abstained": false, "note": "", "driver_doc": "11254556"}
+{"id": 913, "gold": "NEI", "pred": "NEI", "confidence": 0.9995196506788488, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 914, "gold": "NEI", "pred": "NEI", "confidence": 0.9978883252479136, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 921, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9990065693855286, "abstained": false, "note": "", "driver_doc": "1642727"}
+{"id": 922, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9992548823356628, "abstained": false, "note": "", "driver_doc": "17077004"}
+{"id": 936, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9953323006629944, "abstained": false, "note": "", "driver_doc": "5483793"}
+{"id": 956, "gold": "NEI", "pred": "NEI", "confidence": 0.9995786085492, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 957, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.656953752040863, "abstained": false, "note": "", "driver_doc": "123859"}
+{"id": 960, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.996908962726593, "abstained": false, "note": "", "driver_doc": "8780599"}
+{"id": 967, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.5233447551727295, "abstained": false, "note": "", "driver_doc": "8997410"}
+{"id": 971, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9703012108802795, "abstained": false, "note": "", "driver_doc": "9764256"}
+{"id": 975, "gold": "NEI", "pred": "NEI", "confidence": 0.9996069107437506, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 982, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9699166025966406, "abstained": true, "note": "strongest evidence 0.03 is below threshold 0.50", "driver_doc": null}
+{"id": 985, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9973109243437648, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 993, "gold": "CONTRADICT", "pred": "SUPPORT", "confidence": 0.9817743301391602, "abstained": false, "note": "", "driver_doc": "16472469"}
+{"id": 1012, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9984928369522095, "abstained": false, "note": "", "driver_doc": "9745001"}
+{"id": 1014, "gold": "NEI", "pred": "NEI", "confidence": 0.9996323331142776, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1019, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9913325915113091, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 1020, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9991184927639551, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1021, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9988784025190398, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1024, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.7335376739501953, "abstained": false, "note": "", "driver_doc": "5373138"}
+{"id": 1029, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9990621209144592, "abstained": false, "note": "", "driver_doc": "13940200"}
+{"id": 1041, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9981173747219145, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1049, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9944988978095353, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 1062, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9974349141120911, "abstained": false, "note": "", "driver_doc": "20381484"}
+{"id": 1086, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9991287589073181, "abstained": false, "note": "", "driver_doc": "39281140"}
+{"id": 1088, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9062664210796356, "abstained": true, "note": "strongest evidence 0.09 is below threshold 0.50", "driver_doc": null}
+{"id": 1089, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9638670980930328, "abstained": true, "note": "strongest evidence 0.04 is below threshold 0.50", "driver_doc": null}
+{"id": 1099, "gold": "NEI", "pred": "NEI", "confidence": 0.9997900248563383, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1100, "gold": "NEI", "pred": "NEI", "confidence": 0.9995822188502643, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1104, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9329678416252136, "abstained": false, "note": "", "driver_doc": "3898784"}
+{"id": 1107, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.986979603767395, "abstained": false, "note": "", "driver_doc": "20532591"}
+{"id": 1110, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9997152711148374, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1121, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9923927928321064, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 1130, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9988879561424255, "abstained": false, "note": "", "driver_doc": "17997584"}
+{"id": 1132, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9959333539009094, "abstained": false, "note": "", "driver_doc": "33499189"}
+{"id": 1137, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9977042078971863, "abstained": false, "note": "", "driver_doc": "33370"}
+{"id": 1140, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9932122388854623, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 1144, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9537613987922668, "abstained": false, "note": "", "driver_doc": "10071552"}
+{"id": 1146, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9117718935012817, "abstained": false, "note": "", "driver_doc": "13906581"}
+{"id": 1150, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9798901081085205, "abstained": false, "note": "", "driver_doc": "11369420"}
+{"id": 1163, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.7410326600074768, "abstained": true, "note": "strongest evidence 0.26 is below threshold 0.50", "driver_doc": null}
+{"id": 1175, "gold": "NEI", "pred": "NEI", "confidence": 0.9996460658148862, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1179, "gold": "NEI", "pred": "NEI", "confidence": 0.9998032170988154, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1180, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9979811310768127, "abstained": false, "note": "", "driver_doc": "31272411"}
+{"id": 1185, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9972265362739563, "abstained": false, "note": "", "driver_doc": "16737210"}
+{"id": 1187, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.5777367949485779, "abstained": false, "note": "", "driver_doc": "52873726"}
+{"id": 1191, "gold": "NEI", "pred": "NEI", "confidence": 0.9997507523512468, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1194, "gold": "NEI", "pred": "NEI", "confidence": 0.9992949897423387, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1196, "gold": "NEI", "pred": "NEI", "confidence": 0.9996264747460373, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1197, "gold": "NEI", "pred": "NEI", "confidence": 0.9657838977873325, "abstained": true, "note": "strongest evidence 0.03 is below threshold 0.50", "driver_doc": null}
+{"id": 1199, "gold": "NEI", "pred": "NEI", "confidence": 0.9996909924375359, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1200, "gold": "NEI", "pred": "NEI", "confidence": 0.9574984274804592, "abstained": true, "note": "strongest evidence 0.04 is below threshold 0.50", "driver_doc": null}
+{"id": 1202, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9987461566925049, "abstained": false, "note": "", "driver_doc": "3475317"}
+{"id": 1204, "gold": "NEI", "pred": "NEI", "confidence": 0.8936596363782883, "abstained": true, "note": "strongest evidence 0.11 is below threshold 0.50", "driver_doc": null}
+{"id": 1207, "gold": "NEI", "pred": "NEI", "confidence": 0.9996510550263338, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1213, "gold": "NEI", "pred": "NEI", "confidence": 0.9983712512766942, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1216, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9334306716918945, "abstained": false, "note": "", "driver_doc": "24142891"}
+{"id": 1221, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9897533133625984, "abstained": true, "note": "strongest evidence 0.01 is below threshold 0.50", "driver_doc": null}
+{"id": 1225, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9971750974655151, "abstained": false, "note": "", "driver_doc": "9650982"}
+{"id": 1226, "gold": "NEI", "pred": "NEI", "confidence": 0.9985819115536287, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1232, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9972578883171082, "abstained": false, "note": "", "driver_doc": "13905670"}
+{"id": 1241, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9968622922897339, "abstained": false, "note": "", "driver_doc": "4427392"}
+{"id": 1245, "gold": "NEI", "pred": "NEI", "confidence": 0.9993978284765035, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1259, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9921064376831055, "abstained": false, "note": "", "driver_doc": "24341590"}
+{"id": 1262, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9923271536827087, "abstained": false, "note": "", "driver_doc": "44172171"}
+{"id": 1266, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9804887697100639, "abstained": true, "note": "strongest evidence 0.02 is below threshold 0.50", "driver_doc": null}
+{"id": 1270, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9986332058906555, "abstained": false, "note": "", "driver_doc": "13900610"}
+{"id": 1271, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9047068357467651, "abstained": false, "note": "", "driver_doc": "13768432"}
+{"id": 1272, "gold": "NEI", "pred": "NEI", "confidence": 0.9997058411245234, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1273, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9993313550949097, "abstained": false, "note": "", "driver_doc": "11041152"}
+{"id": 1274, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.8143317252397537, "abstained": true, "note": "strongest evidence 0.19 is below threshold 0.50", "driver_doc": null}
+{"id": 1278, "gold": "NEI", "pred": "NEI", "confidence": 0.9519984722137451, "abstained": true, "note": "strongest evidence 0.05 is below threshold 0.50", "driver_doc": null}
+{"id": 1279, "gold": "NEI", "pred": "NEI", "confidence": 0.998701941804029, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1280, "gold": "NEI", "pred": "NEI", "confidence": 0.9953450192697346, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1281, "gold": "NEI", "pred": "NEI", "confidence": 0.9998064303945284, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1282, "gold": "NEI", "pred": "NEI", "confidence": 0.9743718020617962, "abstained": true, "note": "strongest evidence 0.03 is below threshold 0.50", "driver_doc": null}
+{"id": 1290, "gold": "SUPPORT", "pred": "CONTRADICT", "confidence": 0.9606802463531494, "abstained": false, "note": "", "driver_doc": "4687948"}
+{"id": 1292, "gold": "NEI", "pred": "NEI", "confidence": 0.9992229631752707, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1298, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9972646236419678, "abstained": false, "note": "", "driver_doc": "11718220"}
+{"id": 1303, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9993857535882853, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1316, "gold": "NEI", "pred": "NEI", "confidence": 0.9998078915959923, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1319, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.5839319229125977, "abstained": false, "note": "", "driver_doc": "16284655"}
+{"id": 1320, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9938371777534485, "abstained": false, "note": "", "driver_doc": "16284655"}
+{"id": 1332, "gold": "NEI", "pred": "NEI", "confidence": 0.9983660584548488, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1335, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9994340208941139, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1336, "gold": "CONTRADICT", "pred": "NEI", "confidence": 0.9985637007048354, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1337, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9739209190011024, "abstained": true, "note": "strongest evidence 0.03 is below threshold 0.50", "driver_doc": null}
+{"id": 1339, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9976630210876465, "abstained": false, "note": "", "driver_doc": "15482274"}
+{"id": 1344, "gold": "NEI", "pred": "NEI", "confidence": 0.8885057792067528, "abstained": true, "note": "strongest evidence 0.11 is below threshold 0.50", "driver_doc": null}
+{"id": 1352, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9964060187339783, "abstained": false, "note": "", "driver_doc": "12885341"}
+{"id": 1359, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.9977976083755493, "abstained": false, "note": "", "driver_doc": "11614737"}
+{"id": 1362, "gold": "NEI", "pred": "NEI", "confidence": 0.9997566726524383, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1363, "gold": "NEI", "pred": "NEI", "confidence": 0.9997614316234831, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}
+{"id": 1368, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.7410503327846527, "abstained": true, "note": "strongest evidence 0.26 is below threshold 0.50", "driver_doc": null}
+{"id": 1370, "gold": "CONTRADICT", "pred": "CONTRADICT", "confidence": 0.7658904194831848, "abstained": false, "note": "", "driver_doc": "2425364"}
+{"id": 1379, "gold": "SUPPORT", "pred": "SUPPORT", "confidence": 0.9979645013809204, "abstained": false, "note": "", "driver_doc": "16322674"}
+{"id": 1382, "gold": "CONTRADICT", "pred": "SUPPORT", "confidence": 0.829768180847168, "abstained": false, "note": "", "driver_doc": "17755060"}
+{"id": 1385, "gold": "SUPPORT", "pred": "CONTRADICT", "confidence": 0.9423825740814209, "abstained": false, "note": "", "driver_doc": "306006"}
+{"id": 1389, "gold": "SUPPORT", "pred": "NEI", "confidence": 0.9489883035421371, "abstained": true, "note": "strongest evidence 0.05 is below threshold 0.50", "driver_doc": null}
+{"id": 1395, "gold": "NEI", "pred": "NEI", "confidence": 0.9997570097766584, "abstained": true, "note": "strongest evidence 0.00 is below threshold 0.50", "driver_doc": null}

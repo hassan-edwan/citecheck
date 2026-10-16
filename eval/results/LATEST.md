@@ -15,3 +15,5 @@
 | finetuned_nli_selector | dev | bm25 | nli:hassanedwan/citecheck-nli-ft-base | 0.5 | 0.713 [0.658, 0.767] | 0.091 | 0.882 | - |
 | finetuned_nli | dev | bm25 | nli:hassanedwan/citecheck-nli-ft-base | 0.5 | 0.693 [0.636, 0.749] | 0.068 | 0.882 | - |
 | finetuned_nli_selector_v2 | dev | bm25 | nli:/content/drive/MyDrive/citecheck-models/ft-base-sel | 0.1 | 0.729 [0.676, 0.780] | 0.142 | 0.882 | - |
+| finetuned_nli_capped | dev | bm25 | nli:hassanedwan/citecheck-nli-ft-base | 0.5 | 0.693 [0.636, 0.749] | 0.068 | 0.882 | - |
+| finetuned_nli_selector_v2_capped | dev | bm25 | nli:/content/drive/MyDrive/citecheck-models/ft-base-sel | 0.5 | 0.736 [0.684, 0.784] | 0.091 | 0.882 | - |

@@ -1,0 +1,404 @@
+{
+  "name": "finetuned_nli_capped",
+  "created_utc": "2026-10-16T17:37:54+00:00",
+  "split": "dev",
+  "synthetic_fixture": false,
+  "partial": false,
+  "config": {
+    "retriever": "bm25",
+    "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "verifier": "nli:hassanedwan/citecheck-nli-ft-base",
+    "k": 3,
+    "sentences_per_paper": 3,
+    "evidence_unit": "window",
+    "sentence_scorer": "lexical",
+    "tau": 0.5,
+    "margin": 0.0,
+    "trained_on_unit": "window"
+  },
+  "tau_tuning": {
+    "method": "grid_max_macro_f1",
+    "split": "train",
+    "n_claims": 200,
+    "tuned_macro_f1": 0.8097543482158867,
+    "tuned_false_support_rate": 0.05172413793103448,
+    "fs_cap": 0.1,
+    "met_fs_cap": true,
+    "leak": false,
+    "n_tuning_claims_seen_in_finetuning": 0
+  },
+  "data": {
+    "dir": "data/scifact",
+    "sha256_prefix": {
+      "corpus": "b8d6c89624cb2ed7",
+      "dev": "86f0435d08fdb65d"
+    },
+    "n_corpus": 5183,
+    "n_claims": 300,
+    "label_distribution": {
+      "NEI": 112,
+      "SUPPORT": 124,
+      "CONTRADICT": 64
+    }
+  },
+  "claim_level": {
+    "n": 300,
+    "n_mixed_excluded": 0,
+    "macro_f1": 0.6932386409021922,
+    "macro_f1_ci95": [
+      0.6356181741881763,
+      0.7489257987219047
+    ],
+    "accuracy": 0.7133333333333334,
+    "per_class": {
+      "SUPPORT": {
+        "precision": 0.875,
+        "recall": 0.6774193548387096,
+        "f1": 0.7636363636363636,
+        "support": 124
+      },
+      "CONTRADICT": {
+        "precision": 0.7441860465116279,
+        "recall": 0.5,
+        "f1": 0.5981308411214953,
+        "support": 64
+      },
+      "NEI": {
+        "precision": 0.6086956521739131,
+        "recall": 0.875,
+        "f1": 0.717948717948718,
+        "support": 112
+      }
+    },
+    "confusion_rows_gold_cols_pred": {
+      "labels": [
+        "SUPPORT",
+        "CONTRADICT",
+        "NEI"
+      ],
+      "matrix": [
+        [
+          84,
+          6,
+          34
+        ],
+        [
+          3,
+          32,
+          29
+        ],
+        [
+          9,
+          5,
+          98
+        ]
+      ]
+    },
+    "false_support_rate": 0.06818181818181818,
+    "support_precision": 0.875,
+    "coverage": 0.4633333333333333
+  },
+  "retrieval": {
+    "n_claims": 188,
+    "recall@1": 0.7216312056737588,
+    "hit@1": 0.7340425531914894,
+    "precision@1": 0.7340425531914894,
+    "recall@3": 0.8408687943262412,
+    "hit@3": 0.8563829787234043,
+    "precision@3": 0.29432624113475175,
+    "recall@5": 0.8820921985815603,
+    "hit@5": 0.898936170212766,
+    "precision@5": 0.18617021276595744,
+    "recall@10": 0.9405141843971631,
+    "hit@10": 0.9521276595744681,
+    "precision@10": 0.10159574468085107,
+    "recall@20": 0.9578014184397163,
+    "hit@20": 0.9680851063829787,
+    "precision@20": 0.05186170212765957,
+    "mrr": 0.8096055439210534,
+    "ndcg@10": 0.8383783006706879,
+    "avg_gold_docs_per_claim": 1.1117021276595744
+  },
+  "abstract_level": {
+    "label_only": {
+      "precision": 0.6264367816091954,
+      "recall": 0.5215311004784688,
+      "f1": 0.5691906005221932,
+      "n_pred": 174,
+      "n_gold": 209,
+      "n_correct": 109
+    },
+    "label_and_rationale": {
+      "precision": 0.5804597701149425,
+      "recall": 0.48325358851674644,
+      "f1": 0.5274151436031331,
+      "n_pred": 174,
+      "n_gold": 209,
+      "n_correct": 101
+    }
+  },
+  "sentence_selection": {
+    "m": 3,
+    "n_gold_papers": 209,
+    "rationale_recall_at_m": 0.7942583732057417
+  },
+  "tau_sweep_analysis_only": [
+    {
+      "tau": 0.05,
+      "macro_f1": 0.6901329207398551,
+      "false_support_rate": 0.13636363636363635,
+      "support_precision": 0.7948717948717948,
+      "coverage": 0.57
+    },
+    {
+      "tau": 0.1,
+      "macro_f1": 0.6835105547281035,
+      "false_support_rate": 0.125,
+      "support_precision": 0.8035714285714286,
+      "coverage": 0.5466666666666666
+    },
+    {
+      "tau": 0.15,
+      "macro_f1": 0.6987653813947015,
+      "false_support_rate": 0.10795454545454546,
+      "support_precision": 0.8256880733944955,
+      "coverage": 0.53
+    },
+    {
+      "tau": 0.2,
+      "macro_f1": 0.6996863220207339,
+      "false_support_rate": 0.09090909090909091,
+      "support_precision": 0.8446601941747572,
+      "coverage": 0.5066666666666667
+    },
+    {
+      "tau": 0.25,
+      "macro_f1": 0.6918461669610085,
+      "false_support_rate": 0.09090909090909091,
+      "support_precision": 0.8431372549019608,
+      "coverage": 0.5
+    },
+    {
+      "tau": 0.3,
+      "macro_f1": 0.6908455625436757,
+      "false_support_rate": 0.09090909090909091,
+      "support_precision": 0.8415841584158416,
+      "coverage": 0.49
+    },
+    {
+      "tau": 0.35,
+      "macro_f1": 0.6945114273933468,
+      "false_support_rate": 0.08522727272727272,
+      "support_precision": 0.85,
+      "coverage": 0.48333333333333334
+    },
+    {
+      "tau": 0.4,
+      "macro_f1": 0.6895596926659211,
+      "false_support_rate": 0.07954545454545454,
+      "support_precision": 0.8585858585858586,
+      "coverage": 0.4766666666666667
+    },
+    {
+      "tau": 0.45,
+      "macro_f1": 0.6932545885196159,
+      "false_support_rate": 0.07386363636363637,
+      "support_precision": 0.8673469387755102,
+      "coverage": 0.47
+    },
+    {
+      "tau": 0.5,
+      "macro_f1": 0.6932386409021922,
+      "false_support_rate": 0.06818181818181818,
+      "support_precision": 0.875,
+      "coverage": 0.4633333333333333
+    },
+    {
+      "tau": 0.55,
+      "macro_f1": 0.6877172306101397,
+      "false_support_rate": 0.06818181818181818,
+      "support_precision": 0.8723404255319149,
+      "coverage": 0.45666666666666667
+    },
+    {
+      "tau": 0.6,
+      "macro_f1": 0.6909552359120337,
+      "false_support_rate": 0.056818181818181816,
+      "support_precision": 0.8888888888888888,
+      "coverage": 0.44
+    },
+    {
+      "tau": 0.65,
+      "macro_f1": 0.6881396108095862,
+      "false_support_rate": 0.056818181818181816,
+      "support_precision": 0.8876404494382022,
+      "coverage": 0.43666666666666665
+    },
+    {
+      "tau": 0.7,
+      "macro_f1": 0.6851389257979744,
+      "false_support_rate": 0.05113636363636364,
+      "support_precision": 0.8953488372093024,
+      "coverage": 0.4266666666666667
+    },
+    {
+      "tau": 0.75,
+      "macro_f1": 0.6794047147820733,
+      "false_support_rate": 0.05113636363636364,
+      "support_precision": 0.8928571428571429,
+      "coverage": 0.42
+    },
+    {
+      "tau": 0.8,
+      "macro_f1": 0.6797375532644345,
+      "false_support_rate": 0.045454545454545456,
+      "support_precision": 0.9036144578313253,
+      "coverage": 0.4166666666666667
+    },
+    {
+      "tau": 0.85,
+      "macro_f1": 0.6831464228203359,
+      "false_support_rate": 0.045454545454545456,
+      "support_precision": 0.9036144578313253,
+      "coverage": 0.41333333333333333
+    },
+    {
+      "tau": 0.9,
+      "macro_f1": 0.6813920149708567,
+      "false_support_rate": 0.045454545454545456,
+      "support_precision": 0.9024390243902439,
+      "coverage": 0.4066666666666667
+    },
+    {
+      "tau": 0.95,
+      "macro_f1": 0.6731051800832257,
+      "false_support_rate": 0.03977272727272727,
+      "support_precision": 0.9078947368421053,
+      "coverage": 0.37666666666666665
+    }
+  ],
+  "timing": {
+    "retrieval_ms_per_claim": 10.470310553331123,
+    "verify_ms_per_claim": 37.68846091999952,
+    "n_params": 184424451,
+    "device": "cuda"
+  },
+  "provenance": {
+    "git_commit": "7208da97dec3f14d5db1bb0932ec295ba98c5f7a",
+    "versions": {
+      "python": "3.13.15",
+      "platform": "Linux-6.6.122+-x86_64-with-glibc2.39",
+      "torch": "2.11.0+cu130",
+      "transformers": "5.18.0",
+      "sentence_transformers": "5.7.0",
+      "rank_bm25": "0.2.2",
+      "numpy": "2.1.3"
+    },
+    "argv": [
+      "--name",
+      "finetuned_nli_capped",
+      "--retriever",
+      "bm25",
+      "--verifier",
+      "nli",
+      "--model",
+      "hassanedwan/citecheck-nli-ft-base",
+      "--tune-fs-cap",
+      "0.10",
+      "--oracle",
+      "--compare-with",
+      "eval/results/finetuned_nli"
+    ],
+    "seed": 0
+  },
+  "cited_paper": {
+    "n": 300,
+    "n_mixed_excluded": 0,
+    "macro_f1": 0.7268758489412711,
+    "macro_f1_ci95": [
+      0.6675508296814955,
+      0.7822666706114312
+    ],
+    "accuracy": 0.7466666666666667,
+    "per_class": {
+      "SUPPORT": {
+        "precision": 0.9120879120879121,
+        "recall": 0.6693548387096774,
+        "f1": 0.772093023255814,
+        "support": 124
+      },
+      "CONTRADICT": {
+        "precision": 0.8095238095238095,
+        "recall": 0.53125,
+        "f1": 0.6415094339622642,
+        "support": 64
+      },
+      "NEI": {
+        "precision": 0.6407185628742516,
+        "recall": 0.9553571428571429,
+        "f1": 0.7670250896057348,
+        "support": 112
+      }
+    },
+    "confusion_rows_gold_cols_pred": {
+      "labels": [
+        "SUPPORT",
+        "CONTRADICT",
+        "NEI"
+      ],
+      "matrix": [
+        [
+          83,
+          6,
+          35
+        ],
+        [
+          5,
+          34,
+          25
+        ],
+        [
+          3,
+          2,
+          107
+        ]
+      ]
+    },
+    "false_support_rate": 0.045454545454545456,
+    "support_precision": 0.9120879120879121,
+    "coverage": 0.44333333333333336,
+    "paired_comparisons": [
+      {
+        "diff": 0.0,
+        "ci95": [
+          0.0,
+          0.0
+        ],
+        "p_a_better": 0.0,
+        "vs": "finetuned_nli",
+        "n": 300
+      }
+    ]
+  },
+  "error_attribution": {
+    "end_to_end": 0.6932386409021922,
+    "oracle_doc": 0.7268758489412711,
+    "oracle_rationale": 0.8488470012616255,
+    "loss_from_retrieval": 0.03363720803907888,
+    "loss_from_sentence_selection": 0.12197115232035438,
+    "remaining_gap_is_verifier": 0.1511529987383745,
+    "reading": "macro-F1 with the gold paper(s) supplied (oracle_doc) or gold paper+sentences (oracle_rationale). loss_from_retrieval = what better retrieval could buy; remaining_gap_is_verifier = what only a better classifier can fix."
+  },
+  "paired_comparisons": [
+    {
+      "diff": 0.0,
+      "ci95": [
+        0.0,
+        0.0
+      ],
+      "p_a_better": 0.0,
+      "vs": "finetuned_nli",
+      "n": 300
+    }
+  ]
+}
