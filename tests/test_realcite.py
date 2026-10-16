@@ -111,7 +111,7 @@ def test_run_realcite_scores_whole_sentence_and_extracted(fixture_dir, tmp_path,
         def __init__(self, model_name, **_):
             self.model_name = model_name
 
-        def generate(self, prompts):  # method citations: nothing attributed; others: the whole sentence's first words
+        def generate(self, prompts):  # method citations: nothing attributed; others: the whole sentence
             out = []
             for p in prompts:
                 sent = p.split("Citing sentence: ")[-1].split("\nAnswer:")[0]
@@ -121,13 +121,62 @@ def test_run_realcite_scores_whole_sentence_and_extracted(fixture_dir, tmp_path,
 
     monkeypatch.setattr("src.reasoning.LocalLLM", FakeLLM)
     monkeypatch.setenv("CITECHECK_VERIFIER", "lexical")
-    r = run_realcite.main(["--name", "rc", "--labels", str(lab), "--raw", str(raw), "--data-dir", str(fixture_dir),
-                           "--out", str(tmp_path / "res"), "--claim-extractor", "fake", "--n-boot", "50"])
+    args = ["--labels", str(lab), "--raw", str(raw), "--data-dir", str(fixture_dir), "--out", str(tmp_path / "res"),
+            "--deployed", str(tmp_path / "deployed.json"), "--n-boot", "50"]
+    r = run_realcite.main(["--name", "rc", "--claim-extractor", "fake", "--tune-tau", *args])
     assert r["n_pairs"] == len(rows) and r["labels_unreviewed"] == len(rows)
-    assert set(r["systems"]) == {"whole_sentence", "extracted"} and "extracted_vs_whole_sentence" in r
-    assert r["systems"]["extracted"]["method_citations_skipped"] == 1.0   # every method citation was left unjudged
+    assert set(r["systems"]) == {"baseline", "gated", "gated_extracted"} and r["primary_system"] == "gated_extracted"
+    assert r["split"]["tune_papers"] == r["split"]["test_papers"] == 1                      # one cited paper per half
+    assert {p["half"] for p in map(json.loads, (tmp_path / "res" / "rc" / "predictions.jsonl").read_text().splitlines())} == {"tune", "test"}
+    assert r["systems"]["gated_extracted"]["all"]["non_claims_left_unjudged"] == 1.0   # method citations left unjudged
+    assert r["tau_tuning"]["tau"] in run_realcite.TAU_GRID and r["systems"]["gated_extracted"]["tau"] == r["tau_tuning"]["tau"]
+    assert set(r["gate"]) == {"tune", "test"} and "gated_extracted_vs_baseline_test" in r["comparisons"]
     preds = (tmp_path / "res" / "rc" / "predictions.jsonl").read_text()
     assert all(row["context"] not in preds for row in rows)                # citing text is never written out
+
+    # promotion: refused on unreviewed labels unless explicitly allowed, and then recorded
+    with pytest.raises(SystemExit):
+        run_realcite.main(["--name", "rc2", "--tune-tau", "--promote-audit", *args])
+    run_realcite.main(["--name", "rc3", "--tune-tau", "--promote-audit", "--allow-unreviewed", *args])
+    dep = json.loads((tmp_path / "deployed.json").read_text())
+    assert dep["citation_gate"] is True and dep["audit_labels_reviewed"] is False and dep["audit_tau"] in run_realcite.TAU_GRID
+
+
+def test_relabel_and_tune_tau():
+    claim = lambda s, c: {"status": "checked", "role": "result", "probs": {"support": s, "neutral": 1 - s - c, "contradict": c}}  # noqa: E731
+    preds = [{"pair_id": "a", "gold": "SUPPORT", "claims": [claim(0.7, 0.1)]},
+             {"pair_id": "b", "gold": "NEI", "claims": [claim(0.5, 0.1)]},
+             {"pair_id": "c", "gold": "PARTIAL", "claims": [claim(0.9, 0.0), claim(0.1, 0.1)]},
+             {"pair_id": "d", "gold": "NOT_A_CLAIM", "claims": [{"status": "not_a_claim", "role": "other", "probs": None}]}]
+    at = {p["pair_id"]: p["pred"] for p in run_realcite.relabel(preds, 0.6)}
+    assert at == {"a": "SUPPORT", "b": "NEI", "c": "PARTIAL", "d": "NEI"}
+    assert {p["pair_id"]: p["pred"] for p in run_realcite.relabel(preds, 0.4)}["b"] == "SUPPORT"
+    best = run_realcite.tune_tau(preds, fs_cap=0.0)
+    assert best["met_cap"] and 0.5 < best["tau"] <= 0.7 and best["false_support_rate"] == 0.0
+
+
+def test_split_is_by_paper_and_balanced():
+    split = run_realcite.realcite_split([str(i) for i in range(40)] * 2)
+    assert sum(v == "tune" for v in split.values()) == 20 and split == run_realcite.realcite_split(map(str, range(40)))
+
+
+def test_gate_on_typical_contexts():
+    from src.citation_gate import assess_context
+
+    usable = ["Statins lower LDL cholesterol in adults [3].", "Zorvex helps bones [4].",
+              "Quercetin attenuates calcification by inhibiting oxidative stress (Cui et al., 2017).",
+              "Loss of MiDs induces mitochondrial elongation 128,130 ."]
+    for t in usable:
+        assert assess_context(t).usable, t
+    rejected = {"[129] Liu Y, Petreaca M, Martins-Green M.": "reference_entry",
+                "Correspondence Jane Doe, University of X, PO Box 17, 3000 Rotterdam.": "front_matter",
+                "First graft 110 (93) Second graft 8 (7)": "fragment",
+                "Cells were cultured as described previously [12].": "method",
+                "[71], whereas knockout mice develop hypertension [72].": "cut_off",
+                "Patients showed higher abnormality rates than controls.": "no_marker",
+                "Smith,1 Jones,2 Brown,3 and Lee4 contributed equally to this study of mice.": "author_list"}
+    for t, rule in rejected.items():
+        assert assess_context(t).rule == rule, t
 
 
 def test_run_realcite_refuses_changed_sentences_and_bad_labels(fixture_dir, tmp_path):

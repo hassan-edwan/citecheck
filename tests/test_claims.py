@@ -129,3 +129,27 @@ def test_build_pipeline_attaches_extractor_from_env(monkeypatch, fixture_dir):
     monkeypatch.setenv("CITECHECK_CLAIM_EXTRACTOR", "some/local-llm")
     pipe = build_pipeline()
     assert pipe.claim_extractor is not None and pipe.meta["claim_extractor"] == "some/local-llm"
+
+
+def test_audit_gate_and_audit_tau(monkeypatch, fixture_dir):
+    pipe = CiteCheckPipeline(ByClaim({"bone density": Probs(0.7, 0.2, 0.1)}), tau=0.5)
+    method = Reference(PAPER, context="Cells were cultured as described previously [3].")
+    real = Reference(PAPER, context="Zorvex raises bone density [3].")
+    rows = pipe.audit([method, real])
+    assert rows[0].verdict is None and rows[0].claims[0].status == "not_a_claim" and "method" in rows[0].claims[0].note
+    assert rows[1].verdict.label == SUPPORT
+    pipe.audit_tau = 0.8                                     # the audit's own threshold, stricter than the checker's
+    assert pipe.audit([real])[0].verdict.label == NEI
+    assert pipe.verify_against_paper("Zorvex raises bone density.", PAPER).label == SUPPORT  # claim checker unchanged
+    pipe.citation_gate = False
+    assert pipe.audit([method])[0].verdict is not None       # gate off: the method citation gets judged
+
+    from src.config import load_config
+    from src.pipeline import build_pipeline
+
+    monkeypatch.setenv("CITECHECK_VERIFIER", "lexical")
+    monkeypatch.setenv("CITECHECK_DATA_DIR", str(fixture_dir))
+    monkeypatch.setenv("CITECHECK_AUDIT_TAU", "0.75")
+    monkeypatch.setenv("CITECHECK_CITATION_GATE", "off")
+    p = build_pipeline()
+    assert p.audit_tau == 0.75 and p.citation_gate is False and load_config().audit_tau == 0.75

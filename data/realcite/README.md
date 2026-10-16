@@ -66,3 +66,23 @@ What the draft labelling found about real citation contexts:
   facts papers cite them for.
 - Three labels flag a possible contradiction for the reviewer to decide (pairs on bladder-cancer progression, amyloid-
   first ordering, and PRT6 and leaf senescence); only the PRT6 one is drafted as CONTRADICT.
+
+## How the labels are used in the system
+
+The set is split by cited paper into a **tune** half (20 papers, 40 pairs) and a **test** half (20 papers, 40 pairs);
+`eval/run_realcite.realcite_split` fixes the split. Only the tune half is used to build anything:
+
+1. **Citation-context gate** (`src/citation_gate.py`), the audit's first stage: rules that skip reference entries,
+   addresses and headers, author lists, table fragments, cut-off clauses, method citations and sentences without a
+   citation marker. Rules were written from tune-half examples. Held-out test half: caught **6 of 10** non-claims and
+   wrongly skipped **0 of 30** real claims (tune half: 8 of 11, 0 of 29). Caveat: these labels were written by reading
+   all 80 pairs, and the test-half totals were seen once during development (not which pairs), so the test half guards
+   against tuned rules, not against the labeller's familiarity. It cannot catch contexts Semantic Scholar attached to
+   the wrong reference.
+2. **Audit abstain threshold** (`audit_tau`): `run_realcite --tune-tau` picks it on the tune half (best macro-F1 with
+   false-SUPPORT at most `--fs-cap`, default 0.10) and reports the test half. `--promote-audit` writes it to
+   `deployed_config.json`; with unreviewed labels it refuses unless `--allow-unreviewed`, which is recorded as
+   `audit_labels_reviewed: false`.
+
+Both depend on unreviewed AI drafts. When the labels are reviewed, re-run `run_realcite --tune-tau` and re-check the
+gate numbers before quoting them.

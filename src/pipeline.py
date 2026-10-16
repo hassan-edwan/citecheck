@@ -17,6 +17,7 @@ from typing import Callable, Optional, Sequence
 from .config import Config, load_config
 from .evidence import LexicalSentenceScorer, build_sentence_scorer, score_claim_docs
 from .ingest import clean_context
+from .citation_gate import assess_context
 from .claims import aggregate
 from .schema import NEI, SUPPORT, AuditRow, ClaimCheck, EvidenceItem, Hit, Paper, Reference, Verdict
 from .verdict import decide
@@ -33,6 +34,8 @@ class CiteCheckPipeline:
         self.k, self.m, self.tau, self.margin = k, sentences_per_paper, tau, margin
         self.evidence_unit = evidence_unit
         self.claim_extractor = None  # src/claims.ClaimExtractor; None = check whole citing sentences
+        self.citation_gate = True  # src/citation_gate: skip contexts that are not claims before verifying
+        self.audit_tau = None  # abstain threshold for the citation audit; None = the claim checker's tau
         self.meta = meta or {}
         self.warnings = warnings or []
 
@@ -41,7 +44,7 @@ class CiteCheckPipeline:
         return self.retriever is not None
 
     # ------------------------------------------------------------------------------------------
-    def verify_claim(self, claim: str, docs: Optional[Sequence] = None) -> Verdict:
+    def verify_claim(self, claim: str, docs: Optional[Sequence] = None, tau: Optional[float] = None) -> Verdict:
         """docs=None: search the loaded corpus.  docs=[Doc,...]: judge exactly those papers (the cited one)."""
         claim = (claim or "").strip()
         if not claim:
@@ -57,7 +60,7 @@ class CiteCheckPipeline:
         else:
             hits = [Hit(d, 0.0, i + 1) for i, d in enumerate(docs)]
         scored = score_claim_docs([(claim, hits)], self.verifier, self.scorer, m=self.m, unit=self.evidence_unit)[0]
-        dec = decide([s.probs for s in scored], tau=self.tau, margin=self.margin)
+        dec = decide([s.probs for s in scored], tau=self.tau if tau is None else tau, margin=self.margin)
 
         strength = lambda i: max(scored[i].probs.support, scored[i].probs.contradict)  # noqa: E731
         order = sorted(range(len(scored)), key=lambda i: -strength(i))
@@ -76,12 +79,12 @@ class CiteCheckPipeline:
             note=(note + dec.note).strip(), latency_ms=1000 * (time.perf_counter() - t0), backend=dict(self.meta),
         )
 
-    def verify_against_paper(self, claim: str, paper: Paper) -> Verdict:
+    def verify_against_paper(self, claim: str, paper: Paper, tau: Optional[float] = None) -> Verdict:
         """The core use case: 'I cite this paper for this claim. Does it hold up?'"""
         doc = paper.to_doc()
         if not doc.sentences:
             raise ValueError("That paper has no abstract text to check against.")
-        return self.verify_claim(claim, docs=[doc])
+        return self.verify_claim(claim, docs=[doc], tau=tau)
 
     # ------------------------------------------------------------------------------------------
     def audit(self, references: Sequence, max_items: int = 10, progress: Optional[Callable] = None) -> list:
@@ -91,14 +94,23 @@ class CiteCheckPipeline:
         the cited paper; without one, the whole cleaned sentence is the claim (the Session 5 behaviour).
         """
         refs = list(references)[:max_items]
-        todo = [(i, ctx) for i, ref in enumerate(refs) if ref.cited.abstract.strip() for ctx in ref.all_contexts]
+        gated, todo = {}, []
+        for i, ref in enumerate(refs):
+            if not ref.cited.abstract.strip():
+                continue
+            for ctx in ref.all_contexts:
+                g = assess_context(ctx) if self.citation_gate else None
+                if g is not None and not g.usable:
+                    gated.setdefault(i, []).append(ClaimCheck(ctx, "", status="not_a_claim", note=g.reason))
+                else:
+                    todo.append((i, ctx))
         extracted = [None] * len(todo)
         if self.claim_extractor is not None and todo:
             try:
                 extracted = self.claim_extractor.extract([(c, refs[i].cited.title, refs[i].intents) for i, c in todo])
             except Exception as e:  # a broken local LLM must not take the audit down
                 self.warnings.append(f"Claim extraction unavailable ({type(e).__name__}); checked whole sentences.")
-        per_ref = {}
+        per_ref = {i: list(v) for i, v in gated.items()}
         for (i, ctx), ex in zip(todo, extracted):
             if ex is None:
                 note = "claim extraction failed; checked the whole sentence" if self.claim_extractor is not None else ""
@@ -122,7 +134,7 @@ class CiteCheckPipeline:
             checks = per_ref.get(n - 1, [])
             for c in checks:
                 if c.status == "checked":
-                    c.verdict = self.verify_against_paper(c.claim, ref.cited)
+                    c.verdict = self.verify_against_paper(c.claim, ref.cited, tau=self.audit_tau)
             checked = [c for c in checks if c.verdict is not None]
             if not checked:
                 rows.append(AuditRow(ref, None, "no claim attributed to this citation could be checked", checks))
@@ -211,6 +223,8 @@ def build_pipeline(cfg: Optional[Config] = None, allow_fallback: bool = True) ->
     meta["sentence_scorer"] = getattr(scorer, "name", "lexical")
     pipe = CiteCheckPipeline(verifier, retriever, scorer, cfg.k, cfg.sentences_per_paper, cfg.tau, cfg.margin, meta, warnings,
                              evidence_unit=cfg.evidence_unit)
+    pipe.citation_gate, pipe.audit_tau = cfg.citation_gate, cfg.audit_tau
+    meta["audit_tau"] = cfg.audit_tau
     if cfg.claim_extractor:  # loads lazily on the first audit; a failure falls back to whole sentences, with a warning
         from .claims import ClaimExtractor
         from .reasoning import LocalLLM

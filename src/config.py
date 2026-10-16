@@ -33,6 +33,8 @@ class Config:
     tau: float = 0.5
     margin: float = 0.0
     data_dir: str = "data/scifact"
+    citation_gate: bool = True  # skip citing "sentences" that are not claims (src/citation_gate.py); audit only
+    audit_tau: Optional[float] = None  # the audit's own abstain threshold, tuned by eval/run_realcite.py --tune-tau
     claim_extractor: Optional[str] = None  # local LLM for the citation audit (src/claims.py); audit-only, experimental
     validated: bool = False
     deployed: Optional[dict] = None  # the raw deployed_config.json, when present
@@ -80,4 +82,7 @@ def load_config(deployed_path: Path = DEPLOYED_PATH) -> Config:
             cfg.validated = False
     cfg.data_dir = _env("CITECHECK_DATA_DIR") or cfg.data_dir
     cfg.claim_extractor = _env("CITECHECK_CLAIM_EXTRACTOR") or (dep or {}).get("claim_extractor") or None
+    gate = _env("CITECHECK_CITATION_GATE")
+    cfg.citation_gate = (gate.lower() not in ("0", "false", "off")) if gate else bool((dep or {}).get("citation_gate", True))
+    cfg.audit_tau = _env("CITECHECK_AUDIT_TAU", float) or (dep or {}).get("audit_tau")
     return cfg
