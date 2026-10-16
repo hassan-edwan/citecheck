@@ -244,3 +244,20 @@ def test_latest_table_ignores_other_result_formats(fixture_dir, tmp_path):
     (tmp_path / "realcite_audit" / "results.json").write_text(json.dumps({"name": "realcite_audit", "systems": {}}))
     run_eval.main(base_args(fixture_dir, tmp_path, "lexical"))   # rebuilding LATEST.md must not crash
     assert "| lexical |" in (tmp_path / "LATEST.md").read_text() and "realcite" not in (tmp_path / "LATEST.md").read_text()
+
+
+def test_tune_tau_with_a_false_support_cap():
+    def out(gold, s):  # one claim, one paper with support probability s
+        return {"id": 0, "gold_label": gold, "docs": [{"doc_id": "d", "probs": {"support": s, "neutral": 1 - s, "contradict": 0.0}}]}
+
+    outputs = [out("SUPPORT", 0.9)] + [out("SUPPORT", 0.3)] * 5 + [out("NEI", 0.3)] + [out("NEI", 0.1)] * 2
+    free = run_eval.tune_tau(outputs)
+    assert free["tau"] <= 0.3 and free["false_support_rate"] > 0          # best F1 accepts the 0.3 false SUPPORT
+    capped = run_eval.tune_tau(outputs, fs_cap=0.0)
+    assert capped["tau"] > 0.3 and capped["false_support_rate"] == 0.0
+    assert run_eval.tune_tau([out("NEI", 0.99)], fs_cap=0.0)["met_fs_cap"] is False
+
+
+def test_run_records_the_fs_cap(fixture_dir, tmp_path):
+    r = run_eval.main(base_args(fixture_dir, tmp_path, "capped", extra=["--tune-fs-cap", "0.1"]))
+    assert r["tau_tuning"]["fs_cap"] == 0.1 and r["tau_tuning"]["met_fs_cap"] in (True, False)

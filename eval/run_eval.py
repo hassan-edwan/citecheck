@@ -337,10 +337,20 @@ def tau_sweep(outputs, margin=0.0):
     return rows
 
 
-def tune_tau(outputs, margin=0.0):
-    """Pick tau maximising macro-F1 on the tuning outputs; ties go to the larger (more cautious) tau."""
+def tune_tau(outputs, margin=0.0, fs_cap=None):
+    """Pick tau maximising macro-F1 on the tuning outputs; ties go to the larger (more cautious) tau.
+
+    fs_cap: only consider taus whose false-SUPPORT rate on the tuning outputs is at most fs_cap (the safety-first
+    rule); if none qualifies, take the tau with the lowest false-SUPPORT rate (ties: higher F1).
+    """
+    rows = tau_sweep(outputs, margin)
+    if fs_cap is not None:
+        ok = [r for r in rows if r["false_support_rate"] <= fs_cap]
+        if not ok:
+            return dict(min(rows, key=lambda r: (r["false_support_rate"], -r["macro_f1"], -r["tau"])), met_fs_cap=False)
+        rows = ok
     best = None
-    for row in tau_sweep(outputs, margin):
+    for row in rows:
         if best is None or row["macro_f1"] > best["macro_f1"] + 1e-12 or (
             abs(row["macro_f1"] - best["macro_f1"]) <= 1e-12 and row["tau"] > best["tau"]
         ):
@@ -401,6 +411,8 @@ def build_parser():
     p.add_argument("--margin", type=float, default=0.0)
     p.add_argument("--tune-split", default="train", choices=["train", "dev", "none"])
     p.add_argument("--tune-n", type=int, default=200, help="claims used to tune tau")
+    p.add_argument("--tune-fs-cap", type=float, default=None,
+                   help="tune tau as best macro-F1 with false-SUPPORT <= this on the tuning claims (safety-first)")
     p.add_argument("--allow-leak", action="store_true", help="allow tuning on the evaluation split (recorded in results)")
     p.add_argument("--oracle", action="store_true", help="also run oracle-paper and oracle-rationale ablations")
     p.add_argument("--compare-with", action="append", default=[], help="results dir of another run (paired bootstrap)")
@@ -485,11 +497,13 @@ def run(args) -> dict:
         if args.tune_split == "train" and model_path:
             n_trained_on = check_tuning_claims_held_out(model_path, tune_claims, args.allow_leak)
         tune_out = get(f"tune-{args.tune_split}", tune_claims, "e2e")["outputs"]
-        best = tune_tau(tune_out, args.margin)
+        best = tune_tau(tune_out, args.margin, args.tune_fs_cap)
         tau = best["tau"]
         tuning = {
             "method": "grid_max_macro_f1", "split": args.tune_split, "n_claims": len(tune_claims),
-            "tuned_macro_f1": best["macro_f1"], "leak": args.tune_split == args.split or n_trained_on > 0,
+            "tuned_macro_f1": best["macro_f1"], "tuned_false_support_rate": best["false_support_rate"],
+            "fs_cap": args.tune_fs_cap, "met_fs_cap": best.get("met_fs_cap", True) if args.tune_fs_cap is not None else None,
+            "leak": args.tune_split == args.split or n_trained_on > 0,
             "n_tuning_claims_seen_in_finetuning": n_trained_on,
         }
 
