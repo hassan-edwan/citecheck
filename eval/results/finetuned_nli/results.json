@@ -1,6 +1,6 @@
 {
   "name": "finetuned_nli",
-  "created_utc": "2026-10-16T17:16:38+00:00",
+  "created_utc": "2026-10-16T17:24:06+00:00",
   "split": "dev",
   "synthetic_fixture": false,
   "partial": false,
@@ -281,7 +281,7 @@
     "device": "cuda"
   },
   "provenance": {
-    "git_commit": "7df1a5aa63f0e87cf591f796a3f5986449038f62",
+    "git_commit": "0f5661c9311f8d51fe2c0b35f50e9f83a7a30a1f",
     "versions": {
       "python": "3.13.15",
       "platform": "Linux-6.6.122+-x86_64-with-glibc2.39",

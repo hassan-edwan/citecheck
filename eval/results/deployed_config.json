@@ -1,22 +1,24 @@
 {
-  "run_name": "zero_shot_nli",
+  "run_name": "finetuned_nli",
   "retriever": "bm25",
   "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
-  "verifier": "nli",
+  "verifier": "nli:hassanedwan/citecheck-nli-ft-base",
   "k": 3,
   "sentences_per_paper": 3,
-  "tau": 0.6,
+  "evidence_unit": "window",
+  "sentence_scorer": "lexical",
+  "tau": 0.5,
   "margin": 0.0,
-  "dev_macro_f1": 0.6027260510137098,
+  "dev_macro_f1": 0.6932386409021922,
   "dev_macro_f1_ci95": [
-    0.544607329357848,
-    0.6597323663282674
+    0.6356181741881763,
+    0.7489257987219047
   ],
-  "dev_false_support_rate": 0.10795454545454546,
+  "dev_false_support_rate": 0.06818181818181818,
   "data_sha256_prefix": {
     "corpus": "b8d6c89624cb2ed7",
     "dev": "86f0435d08fdb65d"
   },
-  "git_commit": "a999d1fe5ea4bd21bbf8f4de62f7fe92c1c070f2",
-  "created_utc": "2026-09-29T19:19:38+00:00"
+  "git_commit": "0f5661c9311f8d51fe2c0b35f50e9f83a7a30a1f",
+  "created_utc": "2026-10-16T17:24:06+00:00"
 }
