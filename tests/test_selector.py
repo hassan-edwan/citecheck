@@ -66,3 +66,17 @@ def test_pipeline_falls_back_to_word_overlap_when_selector_is_missing(monkeypatc
     pipe = build_pipeline()
     assert isinstance(pipe.scorer, LexicalSentenceScorer) and any("Sentence selector" in w for w in pipe.warnings)
     assert not pipe.meta["validated"]
+
+
+def test_finetune_builds_premises_with_the_learned_selector(fixture_dir, tmp_path):
+    pytest.importorskip("torch")
+    pytest.importorskip("transformers")
+    from eval import finetune_nli
+    from tests.tiny_model import make_tiny_nli
+
+    tiny = make_tiny_nli(tmp_path / "base")
+    out = tmp_path / "ft"
+    finetune_nli.main(["--base", tiny, "--data-dir", str(fixture_dir), "--out", str(out), "--epochs", "1", "--max-steps", "1",
+                       "--batch-size", "4", "--device", "cpu", "--max-length", "64", "--tune-n", "3",
+                       "--sentence-scorer", f"cross:{tiny}"])
+    assert json.loads((out / "train_log.json").read_text())["args"]["sentence_scorer"] == f"cross:{tiny}"

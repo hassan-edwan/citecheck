@@ -227,3 +227,13 @@ def test_a_refused_batch_falls_back_to_single_lookups(fixture_dir):
     rows, _ = C.collect(by_id, ids, s2, 3, 1, random.Random(0), log=logs.append)
     assert {r["cited_doc_id"] for r in rows} == set(ids[1:]) and any("one by one" in line for line in logs)
     assert sum(u.endswith(f"CorpusId:{d}") for u in s2.calls for d in ids) == 3   # one title lookup per paper
+
+
+def test_tune_tau_keeps_the_deployed_tau_without_a_clear_gain():
+    claim = lambda s: {"status": "checked", "role": "result", "probs": {"support": s, "neutral": 1 - s, "contradict": 0.0}}  # noqa: E731
+    preds = [{"pair_id": "a", "gold": "SUPPORT", "claims": [claim(0.65)]},
+             {"pair_id": "b", "gold": "NEI", "claims": [claim(0.2)]}]
+    kept = run_realcite.tune_tau(preds, fs_cap=0.1, default_tau=0.6, min_gain=0.02)
+    assert kept["kept_default"] and kept["tau"] == 0.6                       # 0.6 is already perfect here
+    moved = run_realcite.tune_tau(preds, fs_cap=0.1, default_tau=0.9, min_gain=0.02)
+    assert not moved["kept_default"] and moved["tau"] <= 0.65 and moved["false_support_rate"] == 0.0

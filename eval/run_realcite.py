@@ -104,9 +104,13 @@ def relabel(preds, tau, margin=0.0):
     return out
 
 
-def tune_tau(preds, fs_cap):
+def tune_tau(preds, fs_cap, default_tau=None, min_gain=0.02):
     """Best macro-F1 with false-SUPPORT <= fs_cap (ties: larger tau); if no tau meets the cap, the lowest
-    false-SUPPORT (ties: higher F1, then larger tau)."""
+    false-SUPPORT (ties: higher F1, then larger tau).
+
+    With default_tau, keep it unless the best tau beats it by at least min_gain macro-F1 on these pairs and also
+    meets the cap: with ~40 tuning pairs most of the curve is noise.  (Added after the first real run, where the tune
+    half picked tau=0.1 and the held-out half did worse than at the deployed 0.6.)"""
     rows = []
     for tau in TAU_GRID:
         s = score(relabel(preds, tau), n_boot=0)
@@ -114,7 +118,14 @@ def tune_tau(preds, fs_cap):
     ok = [r for r in rows if r["false_support_rate"] <= fs_cap]
     best = (max(ok, key=lambda r: (r["macro_f1"], r["tau"])) if ok
             else min(rows, key=lambda r: (r["false_support_rate"], -r["macro_f1"], -r["tau"])))
-    return {**best, "met_cap": bool(ok), "fs_cap": fs_cap, "grid": rows}
+    kept_default = False
+    if default_tau is not None:
+        s = score(relabel(preds, default_tau), n_boot=0)
+        default = {"tau": default_tau, "macro_f1": s["macro_f1"], "false_support_rate": s["false_support_rate"]}
+        if not (ok and best["macro_f1"] >= default["macro_f1"] + min_gain) and default["false_support_rate"] <= fs_cap:
+            best, kept_default = default, True
+    return {**best, "met_cap": bool(ok), "fs_cap": fs_cap, "kept_default": kept_default, "min_gain": min_gain,
+            "grid": rows}
 
 
 def gate_report(pairs, split):
@@ -158,6 +169,7 @@ def main(argv=None):
     ap.add_argument("--tau", type=float, default=None, help="audit threshold when not tuning (default: the deployed one)")
     ap.add_argument("--tune-tau", action="store_true", help="choose the audit threshold on the tune half")
     ap.add_argument("--fs-cap", type=float, default=0.10, help="false-SUPPORT ceiling for --tune-tau (tune half)")
+    ap.add_argument("--min-gain", type=float, default=0.02, help="--tune-tau keeps the deployed tau unless beaten by this")
     ap.add_argument("--claim-extractor", default=None, help="local LLM for the gated_extracted system")
     ap.add_argument("--promote-audit", action="store_true", help="write the gate and tuned audit tau to deployed_config.json")
     ap.add_argument("--allow-unreviewed", action="store_true", help="let --promote-audit use unreviewed labels (recorded)")
@@ -213,7 +225,7 @@ def main(argv=None):
         for p, src in zip(v, pairs):
             p["pair_id_doc"], p["half"] = src["cited_doc_id"], split[src["cited_doc_id"]]
 
-    tuning = tune_tau(half(raw[primary], "tune"), a.fs_cap) if a.tune_tau else None
+    tuning = tune_tau(half(raw[primary], "tune"), a.fs_cap, base_tau, a.min_gain) if a.tune_tau else None
     audit_tau = tuning["tau"] if tuning else base_tau
     systems, labelled = {}, {}
     for k, v in raw.items():
@@ -254,7 +266,8 @@ def main(argv=None):
     print(f"gate (test half): caught {g['caught']}/{g['non_claims']} non-claims, "
           f"wrongly skipped {g['real_claims_wrongly_skipped']}/{g['real_claims']} real claims")
     if tuning:
-        print(f"audit tau tuned on the tune half: {tuning['tau']} (false-SUPPORT cap {a.fs_cap}, met: {tuning['met_cap']})")
+        print(f"audit tau from the tune half: {tuning['tau']}" + (" (kept the deployed tau: no clear gain)" if tuning["kept_default"]
+              else f" (false-SUPPORT cap {a.fs_cap}, met: {tuning['met_cap']})"))
     for k, sy in systems.items():
         t = sy["test"]
         print(f"{k:16s} tau {sy['tau']:.2f}  TEST macro-F1 {t['macro_f1']:.3f} {[round(x, 3) for x in t['macro_f1_ci95']]}  "

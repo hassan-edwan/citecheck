@@ -17,6 +17,7 @@ some SUPPORT and the rest NEI -> PARTIAL; otherwise NEI.
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
@@ -54,7 +55,11 @@ def build_prompt(context: str, cited_title: str, intents: Sequence = ()) -> str:
 
 
 def _norm(text: str) -> str:
-    return re.sub(r"\s+", " ", (text or "").lower()).strip(" .;,")
+    """Letters and digits only, lower-cased, after Unicode normalisation.  Semantic Scholar contexts come from PDF
+    extraction ("ef ﬁ ciency", "cir-cularization", "degrada-tionmechanism"), so a faithful quote can differ from the
+    stored sentence in ligatures, hyphenation and spacing; the words themselves must still match exactly."""
+    text = unicodedata.normalize("NFKC", text or "").lower()
+    return re.sub(r"[^0-9a-z]+", "", text)
 
 
 @dataclass

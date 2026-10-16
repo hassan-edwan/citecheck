@@ -153,3 +153,11 @@ def test_audit_gate_and_audit_tau(monkeypatch, fixture_dir):
     monkeypatch.setenv("CITECHECK_CITATION_GATE", "off")
     p = build_pipeline()
     assert p.audit_tau == 0.75 and p.citation_gate is False and load_config().audit_tau == 0.75
+
+
+def test_grounding_tolerates_pdf_extraction_artifacts():
+    ctx = "achieves near-complete cir-cularization ef ﬁ ciency, making Cdr1as detectable in circular form 38 ."
+    raw = claims_json(("Cdr1as is circularized efficiently.", "near-complete circularization efficiency", "result", False),
+                      ("Cdr1as is linear.", "detectable in linear form", "result", False))
+    a, b = parse_claims(raw, ctx)
+    assert a.status == "checked" and b.status == "ungrounded"   # artifacts forgiven, different words are not

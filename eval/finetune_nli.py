@@ -39,7 +39,7 @@ from pathlib import Path
 
 from eval.run_eval import tau_tuning_claims
 from src.data_io import MIXED, find_scifact_dir, load_claims, load_corpus, sha256_file
-from src.evidence import LexicalSentenceScorer, build_premise, select_sentences
+from src.evidence import build_premise, build_sentence_scorer, select_sentences
 from src.nli import DEFAULT_NLI_MODEL, resolve_label_indices
 from src.retrieval import BM25Retriever
 from src.schema import NEI, SUPPORT
@@ -199,6 +199,8 @@ def main(argv=None):
     ap.add_argument("--lr", type=float, default=1e-5)
     ap.add_argument("--batch-size", type=int, default=8)
     ap.add_argument("--grad-accum", type=int, default=1, help="optimizer step every N batches (effective batch = N x batch-size)")
+    ap.add_argument("--sentence-scorer", default="lexical",
+                    help="selector for the premises built at training time; use the one run_eval will use")
     ap.add_argument("--unit", default="window", choices=list(PAIR_BUILDERS),
                     help="evidence unit to train for; evaluate with run_eval --evidence-unit <same>")
     ap.add_argument("--max-length", type=int, default=None, help="default: 320 window, 512 abstract, 160 sentence")
@@ -240,7 +242,8 @@ def main(argv=None):
     if not claims:
         raise SystemExit(f"--tune-n {a.tune_n} holds out all {len(all_claims)} train claims; lower it.")
 
-    retriever, scorer = BM25Retriever(corpus), LexicalSentenceScorer.from_docs(corpus)
+    retriever = BM25Retriever(corpus)
+    scorer = build_sentence_scorer(a.sentence_scorer, corpus, **({} if a.sentence_scorer == "lexical" else {"device": a.device}))
     build = dict(m=a.sentences, neg_per_claim=a.neg_per_claim, match_inference=a.match_inference,
                  gold_doc_neutral=a.gold_doc_neutral, neutral_per_doc=a.neutral_per_doc)
     builder = PAIR_BUILDERS[a.unit]
