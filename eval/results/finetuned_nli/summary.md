@@ -2,7 +2,7 @@
 
 > Real data.
 
-- retriever `bm25`, verifier `nli:/content/drive/MyDrive/citecheck-models/ft-base`, k=3, sentences/paper=3, tau=0.5
+- retriever `bm25`, verifier `nli:hassanedwan/citecheck-nli-ft-base`, k=3, sentences/paper=3, evidence unit=window, tau=0.5
 - tau tuning: {'method': 'grid_max_macro_f1', 'split': 'train', 'n_claims': 200, 'tuned_macro_f1': 0.8097543482158867, 'leak': False, 'n_tuning_claims_seen_in_finetuning': 0}
 
 ## Claim-level (3-class: SUPPORT / CONTRADICT / NEI)
@@ -39,7 +39,13 @@ MRR 0.810, nDCG@10 0.838. (precision@k is capped near 1/k when ~1 paper is relev
 
 **vs `lexical`**: macro-F1 difference +0.173, 95% CI [+0.103, +0.242], P(this run better) = 1.00  (n=300)
 
+## Sentence selection (`lexical`)
+- a complete gold rationale is among the 3 selected sentences for 0.794 of 209 gold papers
+
+## Cited-paper setting (the product: the user gives the paper; = oracle_doc)
+- macro-F1 0.727  95% CI [0.668, 0.782]  false-SUPPORT 0.045
+
 ## Cost / latency
-retrieval 17.4 ms/claim, verification 41.7 ms/claim, model params 184,424,451 on cuda. Local model: $0 per request (compute only).
+retrieval 10.5 ms/claim, verification 37.7 ms/claim, model params 184,424,451 on cuda. Local model: $0 per request (compute only).
 
 > With ~300 dev claims a 95% CI is several F1 points wide: differences smaller than the CI are not evidence.

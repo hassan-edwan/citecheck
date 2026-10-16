@@ -237,3 +237,10 @@ def test_train_log_is_found_locally_or_on_the_hub(tmp_path, monkeypatch):
 
     fake.hf_hub_download = missing
     assert run_eval.find_train_log("MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli") is None
+
+
+def test_latest_table_ignores_other_result_formats(fixture_dir, tmp_path):
+    (tmp_path / "realcite_audit").mkdir()
+    (tmp_path / "realcite_audit" / "results.json").write_text(json.dumps({"name": "realcite_audit", "systems": {}}))
+    run_eval.main(base_args(fixture_dir, tmp_path, "lexical"))   # rebuilding LATEST.md must not crash
+    assert "| lexical |" in (tmp_path / "LATEST.md").read_text() and "realcite" not in (tmp_path / "LATEST.md").read_text()

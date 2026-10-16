@@ -727,7 +727,8 @@ def write_latest(out_root: Path):
     rows = []
     for rj in sorted(out_root.glob("*/results.json")):
         r = json.loads(rj.read_text(encoding="utf-8"))
-        rows.append(r)
+        if "claim_level" in r:  # other harnesses (eval/run_realcite.py) share eval/results/ with their own format
+            rows.append(r)
     rows.sort(key=lambda r: r["created_utc"])
     lines = [
         "# All evaluation runs",

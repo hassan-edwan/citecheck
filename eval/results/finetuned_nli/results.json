@@ -1,17 +1,20 @@
 {
   "name": "finetuned_nli",
-  "created_utc": "2026-10-14T19:10:19+00:00",
+  "created_utc": "2026-10-16T17:16:38+00:00",
   "split": "dev",
   "synthetic_fixture": false,
   "partial": false,
   "config": {
     "retriever": "bm25",
     "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
-    "verifier": "nli:/content/drive/MyDrive/citecheck-models/ft-base",
+    "verifier": "nli:hassanedwan/citecheck-nli-ft-base",
     "k": 3,
     "sentences_per_paper": 3,
+    "evidence_unit": "window",
+    "sentence_scorer": "lexical",
     "tau": 0.5,
-    "margin": 0.0
+    "margin": 0.0,
+    "trained_on_unit": "window"
   },
   "tau_tuning": {
     "method": "grid_max_macro_f1",
@@ -130,6 +133,11 @@
       "n_gold": 209,
       "n_correct": 101
     }
+  },
+  "sentence_selection": {
+    "m": 3,
+    "n_gold_papers": 209,
+    "rationale_recall_at_m": 0.7942583732057417
   },
   "tau_sweep_analysis_only": [
     {
@@ -267,13 +275,13 @@
     }
   ],
   "timing": {
-    "retrieval_ms_per_claim": 17.357046740002225,
-    "verify_ms_per_claim": 41.69848229666665,
+    "retrieval_ms_per_claim": 10.470310553331123,
+    "verify_ms_per_claim": 37.68846091999952,
     "n_params": 184424451,
     "device": "cuda"
   },
   "provenance": {
-    "git_commit": "5f12e3f88b5359f36abd86dd71070286eb1dae10",
+    "git_commit": "7df1a5aa63f0e87cf591f796a3f5986449038f62",
     "versions": {
       "python": "3.13.15",
       "platform": "Linux-6.6.122+-x86_64-with-glibc2.39",
@@ -291,14 +299,73 @@
       "--verifier",
       "nli",
       "--model",
-      "/content/drive/MyDrive/citecheck-models/ft-base",
+      "hassanedwan/citecheck-nli-ft-base",
       "--oracle",
       "--compare-with",
       "eval/results/zero_shot_nli",
       "--compare-with",
-      "eval/results/lexical"
+      "eval/results/lexical",
+      "--promote"
     ],
     "seed": 0
+  },
+  "cited_paper": {
+    "n": 300,
+    "n_mixed_excluded": 0,
+    "macro_f1": 0.7268758489412711,
+    "macro_f1_ci95": [
+      0.6675508296814955,
+      0.7822666706114312
+    ],
+    "accuracy": 0.7466666666666667,
+    "per_class": {
+      "SUPPORT": {
+        "precision": 0.9120879120879121,
+        "recall": 0.6693548387096774,
+        "f1": 0.772093023255814,
+        "support": 124
+      },
+      "CONTRADICT": {
+        "precision": 0.8095238095238095,
+        "recall": 0.53125,
+        "f1": 0.6415094339622642,
+        "support": 64
+      },
+      "NEI": {
+        "precision": 0.6407185628742516,
+        "recall": 0.9553571428571429,
+        "f1": 0.7670250896057348,
+        "support": 112
+      }
+    },
+    "confusion_rows_gold_cols_pred": {
+      "labels": [
+        "SUPPORT",
+        "CONTRADICT",
+        "NEI"
+      ],
+      "matrix": [
+        [
+          83,
+          6,
+          35
+        ],
+        [
+          5,
+          34,
+          25
+        ],
+        [
+          3,
+          2,
+          107
+        ]
+      ]
+    },
+    "false_support_rate": 0.045454545454545456,
+    "support_precision": 0.9120879120879121,
+    "coverage": 0.44333333333333336,
+    "paired_comparisons": []
   },
   "error_attribution": {
     "end_to_end": 0.6932386409021922,
