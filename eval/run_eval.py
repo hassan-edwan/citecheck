@@ -71,13 +71,13 @@ def tau_tuning_claims(claims, n, seed=0):
 
 
 def check_tuning_claims_held_out(model, tune_claims, allow_leak=False):
-    """Refuse to tune tau on train claims that a local fine-tuned checkpoint was trained on.
+    """Refuse to tune tau on train claims that a fine-tuned checkpoint was trained on.
 
-    A Hugging Face id (no local train_log.json) never saw SciFact, so it passes.  Returns how many tuning
-    claims the model was trained on (non-zero only with allow_leak).
+    The record is the checkpoint's train_log.json (local folder or Hub repo); a model without one is taken never to
+    have seen SciFact.  Returns how many tuning claims the model was trained on (non-zero only with allow_leak).
     """
-    log_path = Path(model) / "train_log.json"
-    if not log_path.exists():
+    log_path = find_train_log(model)
+    if log_path is None:
         return 0
     log = json.loads(log_path.read_text(encoding="utf-8"))
     held_out = set(log.get("heldout_claim_ids") or [])
@@ -150,10 +150,27 @@ def _cache_path(spec: dict) -> Path:
     return Path("eval/cache") / f"collect_{key}.json"
 
 
+def find_train_log(model):
+    """train_log.json of a fine-tuned checkpoint: in its local folder, or in its Hugging Face Hub repo (uploaded with
+    the weights, see the notebook).  None for a model with no log, e.g. a public NLI checkpoint never trained on SciFact."""
+    if not model:
+        return None
+    local = Path(model) / "train_log.json"
+    if local.is_file():
+        return local
+    if Path(model).exists() or model.count("/") != 1:
+        return None
+    try:
+        from huggingface_hub import hf_hub_download
+
+        return Path(hf_hub_download(model, "train_log.json"))
+    except Exception:  # no such file in the repo, no network, or no huggingface_hub
+        return None
+
+
 def _local_train_log(spec):
-    """train_log.json of a local fine-tuned checkpoint named by an nli:<path> spec, if there is one."""
-    path = Path(spec[4:]) / "train_log.json" if spec.lower().startswith("nli:") else None
-    return path if path and path.is_file() else None
+    """train_log.json of the checkpoint named by an nli:<model> spec, if there is one (local folder or Hub repo)."""
+    return find_train_log(spec[4:]) if spec.lower().startswith("nli:") else None
 
 
 def _local_model_fingerprint(model):

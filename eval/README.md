@@ -37,6 +37,14 @@ a failed check can make a verdict CONTRADICT, a check never creates a SUPPORT). 
 **Cited-paper setting**: with `--oracle`, `results.json["cited_paper"]` and `predictions_cited_paper.jsonl` hold the
 metric for the product's own question (the user supplies the paper), with a CI and paired comparisons.
 
+**Sentence selector** (`--sentence-scorer cross:<model>`; train one with `python -m eval.train_selector`): replaces
+word-overlap sentence selection. Every run reports `sentence_selection`: how often the selected sentences of a gold
+paper contain a complete gold rationale (word overlap: 0.794 at m=3 on dev).
+
+**Real citations** (`eval/run_realcite.py`, data card `data/realcite/README.md`): scores the citation audit on real
+citing sentences, whole-sentence vs LLM claim extraction. Results computed while any label is unreviewed are flagged
+and must not be quoted.
+
 Smoke test with 20 claims first (`--limit 20`; the run is flagged *partial* and cannot be promoted).
 The first NLI run downloads the model from Hugging Face (~700 MB) and the first dense/hybrid run embeds the
 corpus once (cached in `data/cache/`).

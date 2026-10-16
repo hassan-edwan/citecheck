@@ -212,3 +212,28 @@ def test_finetune_trains_fp32_weights_from_an_fp16_checkpoint(fixture_dir, tmp_p
                        "--max-steps", "2", "--batch-size", "4", "--device", "cpu", "--max-length", "64", "--tune-n", "3"])
     model = AutoModelForSequenceClassification.from_pretrained(out)
     assert all(p.dtype == torch.float32 for p in model.parameters())
+
+
+def test_train_log_is_found_locally_or_on_the_hub(tmp_path, monkeypatch):
+    import sys
+    import types
+
+    (tmp_path / "ft").mkdir()
+    (tmp_path / "ft" / "train_log.json").write_text("{}")
+    assert run_eval.find_train_log(str(tmp_path / "ft")) == tmp_path / "ft" / "train_log.json"
+    assert run_eval.find_train_log(str(tmp_path / "empty-local-dir")) is None
+
+    hub_log = tmp_path / "hub_log.json"
+    hub_log.write_text(json.dumps({"heldout_claim_ids": [1]}))
+    calls = []
+    fake = types.ModuleType("huggingface_hub")
+    fake.hf_hub_download = lambda repo, name: calls.append((repo, name)) or str(hub_log)
+    monkeypatch.setitem(sys.modules, "huggingface_hub", fake)
+    assert run_eval.find_train_log("someone/citecheck-nli-ft") == hub_log and calls == [("someone/citecheck-nli-ft", "train_log.json")]
+    assert run_eval.find_train_log("not-a-repo-id") is None
+
+    def missing(repo, name):
+        raise FileNotFoundError(name)
+
+    fake.hf_hub_download = missing
+    assert run_eval.find_train_log("MoritzLaurer/DeBERTa-v3-base-mnli-fever-anli") is None

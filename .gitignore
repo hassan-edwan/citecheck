@@ -24,3 +24,6 @@ Thumbs.db
 
 # raw participant material must NEVER be committed (anonymize first, see evidence/README.md)
 evidence/**/raw_unredacted/
+
+# real citing sentences are Semantic Scholar text: collected locally, not redistributed (data/realcite/README.md)
+data/realcite/raw/
