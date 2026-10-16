@@ -17,11 +17,13 @@ SUPPORT = "SUPPORT"
 CONTRADICT = "CONTRADICT"
 NEI = "NEI"
 LABELS = (SUPPORT, CONTRADICT, NEI)
+PARTIAL = "PARTIAL"  # citation audit only: some parts of a citing sentence are supported, the rest are not shown
 
 DISPLAY = {
     SUPPORT: "SUPPORTS",
     CONTRADICT: "CONTRADICTS",
     NEI: "NOT ENOUGH EVIDENCE",
+    PARTIAL: "PARTLY SUPPORTED",
 }
 
 
@@ -77,8 +79,13 @@ class Reference:
     """One outgoing citation of a paper, with the citing sentence if known."""
 
     cited: Paper
-    context: str = ""  # the sentence(s) in the citing paper around the citation
+    context: str = ""  # the sentence(s) in the citing paper around the citation (the first, when there are several)
     intents: tuple = ()
+    contexts: tuple = ()  # EVERY citing sentence Semantic Scholar returned for this reference
+
+    @property
+    def all_contexts(self) -> tuple:
+        return self.contexts or ((self.context,) if self.context.strip() else ())
 
 
 # --------------------------------------------------------------------------- #
@@ -156,10 +163,24 @@ class RelevanceResult:
 
 
 @dataclass
+class ClaimCheck:
+    """One claim checked for a citation: the citing sentence it came from and the verdict on it."""
+
+    context: str  # the citing sentence
+    claim: str  # what was checked against the cited paper
+    source_quote: str = ""  # the exact words of the citing sentence the claim restates
+    role: str = "result"  # background | method | result | comparison | other
+    verdict: Optional[Verdict] = None
+    status: str = "checked"  # checked | needs_more_context | unfaithful | not_attributed
+    note: str = ""
+
+
+@dataclass
 class AuditRow:
     reference: Reference
-    verdict: Optional[Verdict]
+    verdict: Optional[Verdict]  # the reference's overall verdict (may be PARTIAL)
     skipped_reason: str = ""
+    claims: list = field(default_factory=list)  # list[ClaimCheck]
 
 
 # --------------------------------------------------------------------------- #

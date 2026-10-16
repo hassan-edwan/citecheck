@@ -47,7 +47,7 @@ from src.data_io import (
     sha256_file,
     split_has_labels,
 )
-from src.evidence import EVIDENCE_UNITS, LexicalSentenceScorer, score_claim_docs
+from src.evidence import EVIDENCE_UNITS, build_sentence_scorer, score_claim_docs, selection_recall
 from src.nli import DEFAULT_NLI_MODEL, build_verifier
 from src.retrieval import build_retriever
 from src.schema import Hit, LABELS, NEI, Probs
@@ -263,6 +263,14 @@ def apply_reasoner(preds, outputs, corpus_by_id, reasoner, policy, cache_tag, us
             "ms_per_llm_call": 1000 * seconds / len(missing) if missing else None, "sources": dict(sources)}
 
 
+def sentence_selection(claims, corpus_by_id, scorer, m):
+    """How often the m selected sentences of a GOLD paper contain a complete gold rationale (verifier-independent)."""
+    hits = [selection_recall(c.claim, corpus_by_id[d].sentences, c.rationale_sets(d), m, scorer)
+            for c in claims for d in c.gold_docs if d in corpus_by_id]
+    hits = [h for h in hits if h is not None]
+    return {"m": m, "n_gold_papers": len(hits), "rationale_recall_at_m": sum(hits) / len(hits) if hits else None}
+
+
 def claim_level(preds, n_boot=1000, seed=0):
     rows = [p for p in preds if p["gold"] in LABELS]  # drops MIXED
     yt, yp = [p["gold"] for p in rows], [p["pred"] for p in rows]
@@ -368,6 +376,8 @@ def build_parser():
     p.add_argument("--model", default=None, help=f"NLI checkpoint (default {DEFAULT_NLI_MODEL}); HF id or local folder")
     p.add_argument("--k", type=int, default=3, help="papers judged per claim")
     p.add_argument("--sentences", type=int, default=3, help="sentences per paper fed to the verifier (window unit)")
+    p.add_argument("--sentence-scorer", default="lexical",
+                   help="how evidence sentences are chosen: lexical (IDF word overlap) | cross:<model> (eval/train_selector.py)")
     p.add_argument("--evidence-unit", default="window", choices=EVIDENCE_UNITS,
                    help="what the verifier reads per paper: top sentences joined | whole abstract | each sentence")
     p.add_argument("--tau", type=float, default=None, help="fixed abstain threshold (skips tuning)")
@@ -415,7 +425,7 @@ def run(args) -> dict:
     verifier = build_verifier(spec, **verifier_kw)
     retr_kw = {"model_name": args.embed_model} if args.retriever not in ("bm25", "bm25+rerank") else {}
     retriever = build_retriever(args.retriever, corpus, **retr_kw)
-    scorer = LexicalSentenceScorer.from_docs(corpus)
+    scorer = build_sentence_scorer(args.sentence_scorer, corpus, **({} if args.sentence_scorer == 'lexical' else {'device': args.device}))
 
     data_hash = {"corpus": sha256_file(data_dir / "corpus.jsonl")[:16], args.split: sha256_file(split_path)[:16]}
     base_spec = {
@@ -424,6 +434,10 @@ def run(args) -> dict:
     }
     if args.evidence_unit != "window":  # keeps Session 5 cache keys valid
         base_spec["unit"] = args.evidence_unit
+    if args.sentence_scorer != "lexical":
+        base_spec["sentence_scorer"] = args.sentence_scorer
+        if fp := _local_model_fingerprint(args.sentence_scorer[6:]):
+            base_spec["sentence_scorer_sha256_prefix"] = fp
     fingerprint = _local_model_fingerprint(spec[4:] if spec.lower().startswith("nli:") else None)
     if fingerprint:  # retraining into the same folder must not reuse the old checkpoint's cached outputs
         base_spec["model_sha256_prefix"] = fingerprint
@@ -485,7 +499,8 @@ def run(args) -> dict:
         "partial": bool(args.limit),
         "config": {
             "retriever": retriever.name, "embed_model": args.embed_model, "verifier": verifier.name, "k": args.k,
-            "sentences_per_paper": args.sentences, "evidence_unit": args.evidence_unit, "tau": tau, "margin": args.margin,
+            "sentences_per_paper": args.sentences, "evidence_unit": args.evidence_unit, "sentence_scorer": args.sentence_scorer,
+            "tau": tau, "margin": args.margin,
         },
         "tau_tuning": tuning,
         "data": {"dir": str(data_dir), "sha256_prefix": data_hash, "n_corpus": len(corpus),
@@ -495,6 +510,7 @@ def run(args) -> dict:
             {o["id"]: o["ranking"] for o in outputs}, {o["id"]: set(o["gold_docs"]) for o in outputs}
         ),
         "abstract_level": abstract_level(outputs, tau),
+        "sentence_selection": sentence_selection(claims, corpus_by_id, scorer, args.sentences),
         "tau_sweep_analysis_only": tau_sweep(outputs, args.margin),
         "timing": e2e["timing"],
         **({"stage2": {"reasoner": reasoner.name, "mode": args.reasoner_mode, "escalate": args.escalate,
@@ -642,6 +658,11 @@ def summary_md(r: dict) -> str:
             f"\n**vs `{c['vs']}`**: macro-F1 difference {c['diff']:+.3f}, 95% CI [{c['ci95'][0]:+.3f}, {c['ci95'][1]:+.3f}], "
             f"P(this run better) = {c['p_a_better']:.2f}  (n={c['n']})"
         )
+    if r.get("sentence_selection", {}).get("rationale_recall_at_m") is not None:
+        ss = r["sentence_selection"]
+        lines += ["", f"## Sentence selection (`{r['config'].get('sentence_scorer', 'lexical')}`)",
+                  f"- a complete gold rationale is among the {ss['m']} selected sentences for "
+                  f"{ss['rationale_recall_at_m']:.3f} of {ss['n_gold_papers']} gold papers"]
     if "cited_paper" in r:
         cp = r["cited_paper"]
         lines += ["", "## Cited-paper setting (the product: the user gives the paper; = oracle_doc)",
@@ -719,6 +740,7 @@ def promote(out_root: Path, results: dict, args):
         "k": args.k,
         "sentences_per_paper": args.sentences,
         "evidence_unit": args.evidence_unit,
+        "sentence_scorer": args.sentence_scorer,
         "tau": results["config"]["tau"],
         "margin": args.margin,
         "dev_macro_f1": results["claim_level"]["macro_f1"],

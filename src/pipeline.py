@@ -15,9 +15,10 @@ import time
 from typing import Callable, Optional, Sequence
 
 from .config import Config, load_config
-from .evidence import LexicalSentenceScorer, score_claim_docs
+from .evidence import LexicalSentenceScorer, build_sentence_scorer, score_claim_docs
 from .ingest import clean_context
-from .schema import AuditRow, EvidenceItem, Hit, Paper, Reference, Verdict
+from .claims import aggregate
+from .schema import NEI, SUPPORT, AuditRow, ClaimCheck, EvidenceItem, Hit, Paper, Reference, Verdict
 from .verdict import decide
 
 MAX_CLAIM_CHARS = 1500
@@ -31,6 +32,7 @@ class CiteCheckPipeline:
         self.scorer = scorer or LexicalSentenceScorer()
         self.k, self.m, self.tau, self.margin = k, sentences_per_paper, tau, margin
         self.evidence_unit = evidence_unit
+        self.claim_extractor = None  # src/claims.ClaimExtractor; None = check whole citing sentences
         self.meta = meta or {}
         self.warnings = warnings or []
 
@@ -83,19 +85,67 @@ class CiteCheckPipeline:
 
     # ------------------------------------------------------------------------------------------
     def audit(self, references: Sequence, max_items: int = 10, progress: Optional[Callable] = None) -> list:
-        """Check each (citing sentence, cited paper) pair.  EXPERIMENTAL: no gold labels exist for this setting."""
-        rows = []
-        for n, ref in enumerate(list(references)[:max_items], 1):
-            if progress:
-                progress(n, min(len(references), max_items))
-            if not ref.context.strip():
-                rows.append(AuditRow(ref, None, "no citing sentence available for this reference"))
-            elif not ref.cited.abstract.strip():
-                rows.append(AuditRow(ref, None, "cited paper has no abstract available"))
+        """Check each cited paper against EVERY sentence that cites it.  EXPERIMENTAL: see eval/run_realcite.py.
+
+        With a claim extractor (src/claims.py) each citing sentence is first split into the claims it attributes to
+        the cited paper; without one, the whole cleaned sentence is the claim (the Session 5 behaviour).
+        """
+        refs = list(references)[:max_items]
+        todo = [(i, ctx) for i, ref in enumerate(refs) if ref.cited.abstract.strip() for ctx in ref.all_contexts]
+        extracted = [None] * len(todo)
+        if self.claim_extractor is not None and todo:
+            try:
+                extracted = self.claim_extractor.extract([(c, refs[i].cited.title, refs[i].intents) for i, c in todo])
+            except Exception as e:  # a broken local LLM must not take the audit down
+                self.warnings.append(f"Claim extraction unavailable ({type(e).__name__}); checked whole sentences.")
+        per_ref = {}
+        for (i, ctx), ex in zip(todo, extracted):
+            if ex is None:
+                note = "claim extraction failed; checked the whole sentence" if self.claim_extractor is not None else ""
+                checks = [ClaimCheck(ctx, clean_context(ctx), ctx, note=note)]
+            elif not ex:
+                checks = [ClaimCheck(ctx, "", status="not_attributed", note="no factual claim is attributed to this citation")]
             else:
-                claim = clean_context(ref.context)
-                rows.append(AuditRow(ref, self.verify_against_paper(claim, ref.cited)))
+                checks = [ClaimCheck(ctx, c.claim, c.source_quote, c.role, status=c.status, note=c.note) for c in ex]
+            per_ref.setdefault(i, []).extend(checks)
+
+        rows = []
+        for n, ref in enumerate(refs, 1):
+            if progress:
+                progress(n, len(refs))
+            if not ref.all_contexts:
+                rows.append(AuditRow(ref, None, "no citing sentence available for this reference"))
+                continue
+            if not ref.cited.abstract.strip():
+                rows.append(AuditRow(ref, None, "cited paper has no abstract available"))
+                continue
+            checks = per_ref.get(n - 1, [])
+            for c in checks:
+                if c.status == "checked":
+                    c.verdict = self.verify_against_paper(c.claim, ref.cited)
+            checked = [c for c in checks if c.verdict is not None]
+            if not checked:
+                rows.append(AuditRow(ref, None, "no claim attributed to this citation could be checked", checks))
+                continue
+            rows.append(AuditRow(ref, combine_claim_verdicts(checked), claims=checks))
         return rows
+
+
+def combine_claim_verdicts(checked: Sequence) -> Verdict:
+    """Per-claim verdicts of one reference -> one Verdict (a single claim's verdict is returned unchanged)."""
+    if len(checked) == 1:
+        return checked[0].verdict
+    verdicts = [c.verdict for c in checked]
+    label = aggregate([v.label for v in verdicts])
+    lead = next((v for v in verdicts if v.label == label), None) or next(
+        (v for v in verdicts if v.label == SUPPORT), verdicts[0])  # PARTIAL: show the supported claim's evidence
+    n_sup = sum(v.label == SUPPORT for v in verdicts)
+    return Verdict(
+        claim=" | ".join(v.claim for v in verdicts), label=label,
+        confidence=min(v.confidence for v in verdicts if v.label == lead.label), evidence=lead.evidence,
+        abstained=label == NEI and all(v.abstained for v in verdicts),
+        note=f"{n_sup} of {len(verdicts)} claims supported", backend=lead.backend,
+    )
 
 
 def build_pipeline(cfg: Optional[Config] = None, allow_fallback: bool = True) -> CiteCheckPipeline:
@@ -147,5 +197,24 @@ def build_pipeline(cfg: Optional[Config] = None, allow_fallback: bool = True) ->
         "overrides": list(cfg.overrides),
     }
     scorer = LexicalSentenceScorer.from_docs(corpus) if corpus else LexicalSentenceScorer()
-    return CiteCheckPipeline(verifier, retriever, scorer, cfg.k, cfg.sentences_per_paper, cfg.tau, cfg.margin, meta, warnings,
+    if cfg.sentence_scorer != "lexical":
+        try:
+            scorer = build_sentence_scorer(cfg.sentence_scorer)
+            scorer._load()
+        except Exception as e:
+            if not allow_fallback:
+                raise
+            scorer = LexicalSentenceScorer.from_docs(corpus) if corpus else LexicalSentenceScorer()
+            meta["validated"] = False
+            warnings.append(f"Sentence selector '{cfg.sentence_scorer}' could not be loaded ({type(e).__name__}); "
+                            "using word overlap, so the reported score does not apply.")
+    meta["sentence_scorer"] = getattr(scorer, "name", "lexical")
+    pipe = CiteCheckPipeline(verifier, retriever, scorer, cfg.k, cfg.sentences_per_paper, cfg.tau, cfg.margin, meta, warnings,
                              evidence_unit=cfg.evidence_unit)
+    if cfg.claim_extractor:  # loads lazily on the first audit; a failure falls back to whole sentences, with a warning
+        from .claims import ClaimExtractor
+        from .reasoning import LocalLLM
+
+        pipe.claim_extractor = ClaimExtractor(LocalLLM(cfg.claim_extractor), verifier=verifier)
+        meta["claim_extractor"] = cfg.claim_extractor
+    return pipe

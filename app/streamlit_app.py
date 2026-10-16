@@ -335,10 +335,17 @@ with tab_audit:
             table = [{
                 "Cited paper": truncate(r.reference.cited.title, 80),
                 "Citing sentence": truncate(r.reference.context, 140),
+                "Claims checked": sum(c.verdict is not None for c in r.claims),
                 "Verdict": r.verdict.display_label if r.verdict else f"skipped ({r.skipped_reason})",
                 "Confidence": round(r.verdict.confidence, 2) if r.verdict else None,
             } for r in rows]
             st.dataframe(table)
+            for r in rows:
+                if len(r.claims) > 1 or any(c.status != "checked" for c in r.claims):
+                    with st.expander(f"Claims for: {truncate(r.reference.cited.title, 70)}"):
+                        for c in r.claims:
+                            status = c.verdict.display_label if c.verdict else c.status.replace("_", " ")
+                            st.markdown(f"- **{status}**: {c.claim or c.context}" + (f"  \n  _{c.note}_" if c.note else ""))
             log.log("audit", identifier=aud_id, n_rows=len(rows), n_checked=sum(1 for r in rows if r.verdict))
         except (IngestError, ValueError) as e:
             st.error(str(e))

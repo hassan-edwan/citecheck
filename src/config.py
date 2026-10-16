@@ -17,7 +17,8 @@ from typing import Optional
 
 DEPLOYED_PATH = Path("eval/results/deployed_config.json")
 
-_MODEL_FIELDS = ("retriever", "embed_model", "verifier", "k", "sentences_per_paper", "evidence_unit", "tau", "margin")
+_MODEL_FIELDS = ("retriever", "embed_model", "verifier", "k", "sentences_per_paper", "evidence_unit", "sentence_scorer",
+                 "tau", "margin")
 
 
 @dataclass
@@ -27,10 +28,12 @@ class Config:
     verifier: str = "nli"
     k: int = 3
     sentences_per_paper: int = 3
+    sentence_scorer: str = "lexical"  # lexical | cross:<model> (src/evidence.build_sentence_scorer)
     evidence_unit: str = "window"  # window | abstract | sentence (src/evidence.py)
     tau: float = 0.5
     margin: float = 0.0
     data_dir: str = "data/scifact"
+    claim_extractor: Optional[str] = None  # local LLM for the citation audit (src/claims.py); audit-only, experimental
     validated: bool = False
     deployed: Optional[dict] = None  # the raw deployed_config.json, when present
     overrides: list = field(default_factory=list)  # names of env vars that changed model behaviour
@@ -65,6 +68,7 @@ def load_config(deployed_path: Path = DEPLOYED_PATH) -> Config:
         "CITECHECK_EMBED_MODEL": ("embed_model", str),
         "CITECHECK_K": ("k", int),
         "CITECHECK_EVIDENCE_UNIT": ("evidence_unit", str),
+        "CITECHECK_SENTENCE_SCORER": ("sentence_scorer", str),
         "CITECHECK_TAU": ("tau", float),
         "CITECHECK_MARGIN": ("margin", float),
     }
@@ -75,4 +79,5 @@ def load_config(deployed_path: Path = DEPLOYED_PATH) -> Config:
             cfg.overrides.append(var)
             cfg.validated = False
     cfg.data_dir = _env("CITECHECK_DATA_DIR") or cfg.data_dir
+    cfg.claim_extractor = _env("CITECHECK_CLAIM_EXTRACTOR") or (dep or {}).get("claim_extractor") or None
     return cfg

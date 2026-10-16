@@ -62,6 +62,63 @@ class DenseSentenceScorer:
         return (vecs[1:] @ vecs[0]).tolist()
 
 
+class CrossEncoderSentenceScorer:
+    """Score = a cross-encoder's relevance of each sentence to the claim (higher = more likely evidence).
+
+    Works with any transformers sequence-classification checkpoint: one logit (MS MARCO rerankers, and the
+    selector eval/train_selector.py trains), or several labels (the last one is taken as "relevant").
+    """
+
+    def __init__(self, model_name: str, device: Optional[str] = None, max_length: int = 256, batch_size: int = 64):
+        self.model_name, self.max_length, self.batch_size = model_name, max_length, batch_size
+        self._device_pref, self._model = device, None
+        self.name = f"cross:{model_name}"
+
+    def _load(self):
+        if self._model is not None:
+            return
+        import torch
+        from transformers import AutoModelForSequenceClassification, AutoTokenizer
+
+        self._torch = torch
+        self.device = self._device_pref or ("cuda" if torch.cuda.is_available() else "cpu")
+        self._tok = AutoTokenizer.from_pretrained(self.model_name)
+        self._model = AutoModelForSequenceClassification.from_pretrained(self.model_name).float().to(self.device).eval()
+
+    def score(self, claim: str, sentences: Sequence) -> list:
+        if not sentences:
+            return []
+        self._load()
+        out = []
+        with self._torch.no_grad():
+            for s in range(0, len(sentences), self.batch_size):
+                batch = list(sentences[s : s + self.batch_size])
+                enc = self._tok([claim] * len(batch), batch, truncation="only_second", max_length=self.max_length,
+                                padding=True, return_tensors="pt").to(self.device)
+                logits = self._model(**enc).logits.float()
+                out += (logits[:, 0] if logits.shape[1] == 1 else logits.log_softmax(-1)[:, -1]).cpu().tolist()
+        return out
+
+
+def build_sentence_scorer(spec: str = "lexical", docs: Sequence = (), **kw):
+    """spec: lexical | cross:<hf-id-or-local-path>"""
+    spec = (spec or "lexical").strip()
+    if spec.lower() == "lexical":
+        return LexicalSentenceScorer.from_docs(docs) if docs else LexicalSentenceScorer()
+    if spec.lower().startswith("cross:"):
+        return CrossEncoderSentenceScorer(spec[6:], **kw)
+    raise ValueError(f"unknown sentence scorer '{spec}' (lexical | cross:<model>)")
+
+
+def selection_recall(claim: str, sentences: Sequence, rationale_sets: Sequence, m: int, scorer) -> Optional[bool]:
+    """True when the m selected sentences contain at least one COMPLETE gold rationale set (None: no rationale)."""
+    sets = [set(r) for r in rationale_sets if r]
+    if not sets:
+        return None
+    chosen = set(select_sentences(claim, sentences, m, scorer))
+    return any(r <= chosen for r in sets)
+
+
 def select_sentences(claim: str, sentences: Sequence, m: int = 3, scorer=None) -> list:
     """Indices (in reading order) of the m sentences most related to the claim."""
     if not sentences:

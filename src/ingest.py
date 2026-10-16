@@ -271,13 +271,13 @@ class Fetcher:
             if not cp.get("title"):
                 continue
             ext = cp.get("externalIds") or {}
-            ctxs = row.get("contexts") or []
+            ctxs = tuple(dict.fromkeys(c.strip() for c in (row.get("contexts") or []) if isinstance(c, str) and c.strip()))
             refs.append(Reference(
                 cited=Paper(paper_id=f"s2:{cp.get('paperId')}", title=cp.get("title") or "", abstract=cp.get("abstract") or "",
                             year=cp.get("year"), venue=cp.get("venue") or None, doi=(ext.get("DOI") or "").lower() or None,
                             url=f"https://www.semanticscholar.org/paper/{cp.get('paperId')}" if cp.get("paperId") else None,
                             source="s2"),
-                context=ctxs[0] if ctxs else "", intents=tuple(row.get("intents") or ()),
+                context=ctxs[0] if ctxs else "", intents=tuple(row.get("intents") or ()), contexts=ctxs,
             ))
         return refs
 
